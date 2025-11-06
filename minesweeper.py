@@ -2,130 +2,125 @@ import random
 import math
 import tkinter as tk
 
-root = tk.Tk()
+class MineSweeper:
+    fontDefault = ("Courier New", 24)
+    width = 8
+    height = 8
+    bombs = 5
+    actual_board_state = []
+    display_board_state = []
 
-root.geometry("500x500")
-root.title("Minesweeper")
-label = tk.Label(root, text="Minesweeper", font=("Courier New", 32))
-label.pack()
+    def __init__(self):
+        self.root = tk.Tk()
 
-textbox = tk.Text(root, height=3, font=("Courier New", 16))
-textbox.pack(padx=32, pady=32)
+        self.root.geometry("500x500")
+        self.root.title("Minesweeper")
 
+        self.label = tk.Label(self.root, text="Minesweeper", font=("Courier New", 32))
+        self.label.pack()
 
+        self.main_UI = tk.Frame(self.root)
+        self.main_UI.pack(fill= "both", expand = True)
 
-boardFrame = tk.Frame(root)
-boardFrame.columnconfigure(0, weight=1)
-boardFrame.columnconfigure(1, weight=1)
-boardFrame.columnconfigure(2, weight=1)
-boardFrame.columnconfigure(3, weight=2)
+        self.display_board_frame = tk.Frame(self.main_UI)
+        self.display_board_frame.pack(fill= "x", expand = True)
+        self.actual_board_frame = tk.Frame(self.main_UI)
+        self.actual_board_frame.pack(fill= "x", expand = True)
 
-btn1 = tk.Button(boardFrame, text="1", font=("Courier New", 16))
-btn1.grid(row=0, column=0, sticky=tk.W + tk.E)
+        for i in range(self.height):
+            self.display_board_frame.rowconfigure(i, weight = 1)
+            self.actual_board_frame.rowconfigure(i, weight = 1)
 
-btn1 = tk.Button(boardFrame, text="2", font=("Courier New", 16))
-btn1.grid(row=0, column=1, sticky=tk.W + tk.E)
+            for j in range(self.width):
+                self.display_board_frame.columnconfigure(j, weight = 1)
+                self.actual_board_frame.columnconfigure(j, weight = 1)
 
-btn1 = tk.Button(boardFrame, text="3", font=("Courier New", 16))
-btn1.grid(row=0, column=2, sticky=tk.W + tk.E)
+                print("actualBoardState: ", self.actual_board_state)
 
-btn1 = tk.Button(boardFrame, text="4", font=("Courier New", 16))
-btn1.grid(row=1, column=2, sticky=tk.W + tk.E)
+                cell = tk.Button(self.display_board_frame, text = j, font= self.fontDefault, command= self.pick(i, j, self.actual_board_state))
+                cell.grid(row= i, column= j, sticky="nsew")
+                cell = tk.Button(self.actual_board_frame, text = j, font= self.fontDefault, command= self.pick(i, j, self.actual_board_state))
+                cell.grid(row= i, column= j, sticky="nsew")
 
-btn1 = tk.Button(boardFrame, text="5", font=("Courier New", 16))
-btn1.grid(row=1, column=3, sticky=tk.W + tk.E)
+        self.root.mainloop()
 
-btn1 = tk.Button(boardFrame, text="6", font=("Courier New", 16))
-btn1.grid(row=2, column=0, sticky=tk.W + tk.E)
+    def generate_board(self, width = 8, height = 8, bombs = 5):
+        board = []
+        bomb_locs = generate_bombs(width, height, bombs)
 
-boardFrame.pack(padx=32, pady=32, fill="x")
+        for i in range(height):
+            board.append([])    #ensure row existed
+            for j in range(width):
+                # if (bombs > 0) and (random.randint(0, int(width + height)) == int((width + height)/2)):
+                #     board[i].append(1)
+                #     bombs -= 1
+                #     continue
+                if (i, j) in bomb_locs:
+                    board[i].append(1)
+                else:
+                    board[i].append(0)
+        self.actual_board = board
 
-root.mainloop()
+    def generate_bombs(width, height, bombs):
+        #randomize bomb locs 1D array
+        bomb_loc_1D = []
+        temp = 0
+        while bombs > 0:
+            if (temp not in bomb_loc_1D) and (random.randint(0, 1)):
+                bombs -= 1
+                bomb_loc_1D.append(temp)
+            temp = random.randint(0, width * height)
 
-def generate_board(width = 8, height = 8, bombs = 5):
-    board = []
-    bomb_locs = generate_bombs(width, height, bombs)
+        bomb_loc_1D = [3, 18, 8, 55, 12] 
+        print(bomb_loc_1D)
 
-    for i in range(height):
-        board.append([])    #ensure row existed
-        for j in range(width):
-            # if (bombs > 0) and (random.randint(0, int(width + height)) == int((width + height)/2)):
-            #     board[i].append(1)
-            #     bombs -= 1
-            #     continue
-            if (i, j) in bomb_locs:
-                board[i].append(1)
-            else:
-                board[i].append(0)
-    return board
+        # convert to 2D
+        bomb_loc_2D = []
+        for loc in bomb_loc_1D:
+            loc -= 1 #compensate for 0
+            bomb_loc_2D.append((loc // width, loc % width))   # // = integer division
+        print(bomb_loc_2D)
 
-def generate_bombs(width, height, bombs):
-    #randomize bomb locs 1D array
-    bomb_loc_1D = []
-    temp = 0
-    while bombs > 0:
-        if (temp not in bomb_loc_1D) and (random.randint(0, 1)):
-            bombs -= 1
-            bomb_loc_1D.append(temp)
-        temp = random.randint(0, width * height)
+        return bomb_loc_2D
 
-    bomb_loc_1D = [3, 18, 8, 55, 12] 
-    print(bomb_loc_1D)
-
-    # convert to 2D
-    bomb_loc_2D = []
-    for loc in bomb_loc_1D:
-        loc -= 1 #compensate for 0
-        bomb_loc_2D.append((loc // width, loc % width))   # // = integer division
-    print(bomb_loc_2D)
-
-    return bomb_loc_2D
-
-def draw_board(board_in_general):
-    height = len(board_in_general)
-    width = len(board_in_general[0])
-    for i in range(height): #y, x order
-        if (i == 0):
-            for j in range(width + 1):
-                print(j, end = "  ")
+    def draw_board(self, board_in_general):
+        height = len(board_in_general)
+        width = len(board_in_general[0])
+        for i in range(height): #y, x order
+            if (i == 0):
+                for j in range(width + 1):
+                    print(j, end = "  ")
+                print()
+                
+            for j in range(width): #y, x order
+                if (j == 0):
+                    print(chr(i + 65), end = " ")
+                
+                if board_in_general[i][j] == 1:
+                    print("🟥", end = " ")
+                elif board_in_general[i][j] == 0:
+                    print("⬛", end = " ")
+                elif board_in_general[i][j] == 2:
+                    print("🚩", end = " ")
             print()
-            
-        for j in range(width): #y, x order
-            if (j == 0):
-                print(chr(i + 65), end = " ")
-            
-            if board_in_general[i][j] == 1:
-                print("🟥", end = " ")
-            elif board_in_general[i][j] == 0:
-                print("⬛", end = " ")
-            elif board_in_general[i][j] == 2:
-                print("🚩", end = " ")
-        print()
 
-def flag(x, y, board_in_general):
-    try:
-        x = ord(x) - 65 - 1
-        y = int(y)
-        # - 1 to compensate for 0
+    def flag(self, x, y, board_in_general):
+        try:
+            board_in_general[x][y] = 2
+            print(f"flag at {x}, {y}")
+        except IndexError as e:
+            print(f"IndexErr: {x}, {y} is out of range")
 
-        board_in_general[x][y] = 2
-        print(f"flag at {x}, {y}")
-    except IndexError as e:
-        print(f"IndexErr: {x}, {y} is out of range")
+    def pick(self, x, y, board_in_general):
+        try:
+            board_in_general[x][y] = "2"
+            print(f"pick at {x}, {y}")
+        except IndexError as e:
+            print(f"IndexErr: {x}, {y} is out of range")
 
-def pick(x, y, board_in_general):
-    try:
-        x = ord(x) - 65
-        y = int(y)
-
-        board_in_general[x][y] = "2"
-        print(f"pick at {x}, {y}")
-    except IndexError as e:
-        print(f"IndexErr: {x}, {y} is out of range")
-
-def print_board(board_in_general):
-    for row in board_in_general:
-        print(row)
+    def print_board(board_in_general):
+        for row in board_in_general:
+            print(row)
 
 def main():
 
@@ -139,10 +134,7 @@ def main():
 
     # print_board(board_display)
 
-
-    draw_board(board_state)
-    print("board displayaasasdasd")
-    draw_board(board_display)
+MineSweeper()
 
     # while(not game_over):
     #     # choice = int(input("Flag(1) or Pick(0)?:"))

@@ -87,8 +87,10 @@ class MineSweeper:
 				if (i, j) in bomb_locs:
 					board[i].append("B")
 				else:
-					board[i].append(" ")
+					board[i].append(0)
 		self.actual_board = board
+
+		self.generate_cell_num()
 
 	def __generate_bombs(self, width, height, bombs):
 		#randomize bomb locs 1D array
@@ -112,36 +114,30 @@ class MineSweeper:
 
 		return bomb_loc_2D
 
-	def flag(self, x, y, board_in_general):
-		try:
-			board_in_general[x][y] = "F"
-			print(f"flag at {x}, {y}")
-		except IndexError as e:
-			print(f"IndexErr(flag): {x}, {y} is out of range")
-
 	def pick(self, x, y, board_in_general):
-
 		# Check revealed
 		if self.display_board[x][y] == " " or self.display_board[x][y] == "F":
 			print(f"Cell at {x}, {y} revealed already\n")
 			return
 		
-		# Flood reveal -> turn this to be a recursive function
-		if self.actual_board[x][y] == "B":
+		if self.actual_board[x][y] != 0:
 			self.display_board[x][y] = self.actual_board[x][y]
-			print("KABOOM!")
+			# print("KABOOM!")
 
-		if self.actual_board[x][y] == " ":
-			self.display_board[x][y] = self.actual_board[x][y]
+		# Flood reveal -> turn this to be a recursive function
+		elif self.actual_board[x][y] == 0:
+			self.display_board[x][y] = " "
 
 			# Check neighbors
 			for i in range(-1, 2): # to include 1
 				for j in [-1, 0, 1]: # same as above
 					new_x = i + x
 					new_y = j + y
+					if i == 0 and j == 0:
+						continue
 					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds
 						print(f"reveal: {new_x}, {new_y}")
-						if self.actual_board[new_x][new_y] == " ":
+						if self.actual_board[new_x][new_y] == 0:
 							self.pick(new_x, new_y, board_in_general)
 			
 			print()
@@ -166,30 +162,33 @@ class MineSweeper:
 				cells = self.display_cells[i][j]
 				cells.config(text = updated_text)
 
-	def print_board_legacy(self, board_in_general):
-		for row in board_in_general:
-			print(row)
+	def generate_cell_num(self):
+		for x in range(self.height):
+			for y in range(self.width):
+				if self.actual_board[x][y] != "B":
+					for i in [-1, 0, 1]:
+						for j in [-1, 0, 1]:
+							if i == 0 and j == 0:
+								continue
+							new_x = i + x
+							new_y = j + y
+							if (0 <= new_x < self.height) and (0 <= new_y < self.width):
+								if self.actual_board[new_x][new_y] == "B":
+									if self.actual_board[x][y] == 0:
+										self.actual_board[x][y] = 1
+									else:
+										self.actual_board[x][y] += 1
 
-	def draw_board_legacy(self, board_in_general):
-		height = len(board_in_general)
-		width = len(board_in_general[0])
-		for i in range(height):
-			if (i == 0):
-				for j in range(width + 1):
-					print(j, end = "  ")
-				print()
-				
-			for j in range(width): #y, x order
-				if (j == 0):
-					print(chr(i + 65), end = " ")
-				
-				if board_in_general[i][j] == "B":
-					print("🟥", end = " ")
-				elif board_in_general[i][j] == " ":
-					print("⬛", end = " ")
-				elif board_in_general[i][j] == "F":
-					print("🚩", end = " ")
-			print()
 
 
 MineSweeper()
+
+
+
+
+# TODO:
+# - Flagging cells
+# - Win/Lose detection
+# - Better flood reveal (show numbers around revealed 0s)
+# - Timer
+# - Better GUI design?

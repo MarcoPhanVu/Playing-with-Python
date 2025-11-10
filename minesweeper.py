@@ -3,7 +3,7 @@ import math
 import tkinter as tk
 
 class MineSweeper:
-	fontDefault = ("Courier New", 20)
+	fontDefault = ("Courier New", 12)
 	BOMBCellColor = "#000"
 	emptyCellSign = "@"
 	numberedCellColor = [
@@ -63,7 +63,6 @@ class MineSweeper:
 									# text = f"{j} d",
 									text = " ",
 									width = 3,
-									# height = 2,
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
@@ -75,7 +74,6 @@ class MineSweeper:
 									# text = f"{j} a",
 									text = f"{self.actual_board[i][j]}",
 									width = 3,
-									# height = 2,
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
@@ -199,14 +197,19 @@ class MineSweeper:
 
 
 
-MineSweeper(8, 8, 8)
+MineSweeper(24, 24, 100)
 
 
 
 
 # TODO:
 # - Flagging cells
+# - Right click to flag
 # - Win/Lose detection
 # - Better flood reveal (show numbers around revealed 0s)
 # - Timer
 # - Better GUI design?
+# - Editable board size and bomb count
+# - Click on numbered cell to reveal surrounding cells if correct number of flags placed
+# - High score tracking -> save in a file?
+# - scrollable board for large sizes

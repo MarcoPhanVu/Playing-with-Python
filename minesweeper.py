@@ -38,10 +38,10 @@ class MineSweeper:
 		self.display_board = [["-" for cell in range(width)] for cell in range(height)]
 
 		self.generate_actual_board(self.width, self.height, self.bombs)
-		print("Actual Board:")
-		self.print_board(self.actual_board)
-		print("Display Board:")
-		self.print_board(self.display_board)
+		# print("Actual Board:")
+		# self.print_board_legacy(self.actual_board)
+		# print("Display Board:")
+		# self.print_board_legacy(self.display_board)
 
 		# Visualize Boards for display and actual
 		for i in range(self.height):
@@ -112,27 +112,6 @@ class MineSweeper:
 
 		return bomb_loc_2D
 
-	def draw_board(self, board_in_general):
-		height = len(board_in_general)
-		width = len(board_in_general[0])
-		for i in range(height):
-			if (i == 0):
-				for j in range(width + 1):
-					print(j, end = "  ")
-				print()
-				
-			for j in range(width): #y, x order
-				if (j == 0):
-					print(chr(i + 65), end = " ")
-				
-				if board_in_general[i][j] == "B":
-					print("🟥", end = " ")
-				elif board_in_general[i][j] == " ":
-					print("⬛", end = " ")
-				elif board_in_general[i][j] == "F":
-					print("🚩", end = " ")
-			print()
-
 	def flag(self, x, y, board_in_general):
 		try:
 			board_in_general[x][y] = "F"
@@ -165,7 +144,6 @@ class MineSweeper:
 						if self.actual_board[new_x][new_y] == " ":
 							self.pick(new_x, new_y, board_in_general)
 			
-			# self.print_board(self.display_board)
 			print()
 
 		self.update_display_board()
@@ -180,9 +158,6 @@ class MineSweeper:
 		except IndexError as e:
 			print(f"IndexErr(pick:): {x}, {y} is out of range\n")
 
-	def print_board(self, board_in_general):
-		for row in board_in_general:
-			print(row)
 
 	def update_display_board(self):
 		for i in range(self.height):
@@ -190,5 +165,31 @@ class MineSweeper:
 				updated_text = self.display_board[i][j]
 				cells = self.display_cells[i][j]
 				cells.config(text = updated_text)
+
+	def print_board_legacy(self, board_in_general):
+		for row in board_in_general:
+			print(row)
+
+	def draw_board_legacy(self, board_in_general):
+		height = len(board_in_general)
+		width = len(board_in_general[0])
+		for i in range(height):
+			if (i == 0):
+				for j in range(width + 1):
+					print(j, end = "  ")
+				print()
+				
+			for j in range(width): #y, x order
+				if (j == 0):
+					print(chr(i + 65), end = " ")
+				
+				if board_in_general[i][j] == "B":
+					print("🟥", end = " ")
+				elif board_in_general[i][j] == " ":
+					print("⬛", end = " ")
+				elif board_in_general[i][j] == "F":
+					print("🚩", end = " ")
+			print()
+
 
 MineSweeper()

@@ -31,9 +31,13 @@ class MineSweeper:
 		self.actual_board_frame.grid(row = 0, column = 1, padx = 24)
 
 		# Generate Boards
-		self.generate_board(self.width, self.height, self.bombs)
+		self.display_board = [[0 for cell in range(width)] for cell in range(height)]
+
+		self.generate_actual_board(self.width, self.height, self.bombs)
 		print("Actual Board:")
 		self.print_board(self.actual_board)
+		print("Display Board:")
+		self.print_board(self.display_board)
 
 		# Visualize Boards for display and actual
 		for i in range(self.height):
@@ -44,25 +48,25 @@ class MineSweeper:
 				self.display_board_frame.columnconfigure(j, weight = 1)
 				self.actual_board_frame.columnconfigure(j, weight = 1)
 
-				print("actualBoardState: ", self.actual_board)
-
 				cell = tk.Button(	self.display_board_frame,
-									text = f"{j} d",
+									# text = f"{j} d",
+									text = f"{self.actual_board[i][j]}",
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
-				cell.grid(row= i, column= j, sticky="nsew")
+				cell.grid(row = i, column = j, sticky = "NSEW")
 
 				cell = tk.Button(	self.actual_board_frame,
-									text = f"{j} a",
+									# text = f"{j} a",
+									text = f"{self.actual_board[i][j]}",
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
-				cell.grid(row= i, column= j, sticky="nsew")
+				cell.grid(row = i, column = j, sticky = "NSEW")
 
 		self.root.mainloop()
 
-	def generate_board(self, width = 8, height = 8, bombs = 5):
+	def generate_actual_board(self, width = 8, height = 8, bombs = 5):
 		board = []
 		bomb_locs = self.__generate_bombs(width, height, bombs)
 
@@ -160,15 +164,21 @@ class NOTMineSweeperLOL:
 		# [shortened]@
 
 		#I'm not sure about this part, is this creating the actual_board correctly?
-		self.generate_board(self.width, self.height, self.bombs)
-
-	def generate_board(self, width = 8, height = 8, bombs = 5):
-		board = []
-		# is this calling the generate_bombs method correctly?
-		bomb_locs = self.generate_bombs(width, height, bombs)
-		# @[shortened]@
-		self.actual_board = board
+		self.generate_actual_board(self.width, self.height, self.bombs)
 
 	def generate_bombs(width, height, bombs):
 		bomb_loc_2D = []
 		return bomb_loc_2D
+	
+	def generate_actual_board(self, width = 8, height = 8, bombs = 5):
+		board = []
+		bomb_locs = self.__generate_bombs(width, height, bombs)
+
+		for i in range(height):
+			board.append([])
+			for j in range(width):
+				if (i, j) in bomb_locs:
+					board[i].append(1)
+				else:
+					board[i].append(0)
+		self.actual_board = board

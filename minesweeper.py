@@ -3,7 +3,16 @@ import math
 import tkinter as tk
 
 class MineSweeper:
-	fontDefault = ("Courier New", 8)
+	fontDefault = ("Courier New", 20)
+	BOMBCellColor = "#000"
+	emptyCellSign = "@"
+	numberedCellColor = [
+		"#899D78",
+		"#F0BCD4",
+		"#73628a",
+		"#8A1C7C",
+		"#DA4167"
+	]
 
 	def __init__(self, width = 8, height = 8, bombs = 5):
 		self.width = width
@@ -14,16 +23,16 @@ class MineSweeper:
 
 		# Generate GUI
 		self.root = tk.Tk()
-		self.root.geometry("500x500")
+		self.root.geometry("1920x1080")
 		self.root.title("Minesweeper")
 
 		self.label = tk.Label(self.root, text="Minesweeper", font=("Courier New", 32))
 		self.label.pack()
 
 		self.main_UI = tk.Frame(self.root)
-		self.main_UI.pack(fill= "both", expand = True)
-		self.main_UI.columnconfigure(0, weight = 1)
-		self.main_UI.columnconfigure(1, weight = 1)
+		self.main_UI.pack(fill = "both", expand = True)
+		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
+		self.main_UI.columnconfigure(1, weight = 1, minsize = 200)
 
 		self.display_board_frame = tk.Frame(self.main_UI, bg= "light grey")
 		self.display_board_frame.grid(row = 0, column = 0, padx = 24)
@@ -35,13 +44,9 @@ class MineSweeper:
 		self.display_cells = []
 		self.actual_cells = []
 
-		self.display_board = [["-" for cell in range(width)] for cell in range(height)]
+		self.display_board = [[self.emptyCellSign for cell in range(width)] for cell in range(height)]
 
 		self.generate_actual_board(self.width, self.height, self.bombs)
-		# print("Actual Board:")
-		# self.print_board_legacy(self.actual_board)
-		# print("Display Board:")
-		# self.print_board_legacy(self.display_board)
 
 		# Visualize Boards for display and actual
 		for i in range(self.height):
@@ -56,20 +61,26 @@ class MineSweeper:
 
 				cell = tk.Button(	self.display_board_frame,
 									# text = f"{j} d",
-									text = f"{self.display_board[i][j]}",
+									text = " ",
+									width = 3,
+									# height = 2,
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
 				cell.grid(row = i, column = j, sticky = "NSEW")
+				# , padx = 1, pady = 1)
 				self.display_rows.append(cell)
 
 				cell = tk.Button(	self.actual_board_frame,
 									# text = f"{j} a",
 									text = f"{self.actual_board[i][j]}",
+									width = 3,
+									# height = 2,
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
 				cell.grid(row = i, column = j, sticky = "NSEW")
+				# , padx = 1, pady = 1)
 				self.actual_rows.append(cell)
 
 			self.display_cells.append(self.display_rows)
@@ -102,31 +113,28 @@ class MineSweeper:
 				bomb_loc_1D.append(temp)
 			temp = random.randint(0, width * height)
 
-		bomb_loc_1D = [3, 18, 8, 55, 12] 
-		# print(bomb_loc_1D)
+		# bomb_loc_1D = [3, 18, 8, 55, 12] 
 
 		# convert to 2D
 		bomb_loc_2D = []
 		for loc in bomb_loc_1D:
 			loc -= 1 #compensate for 0
 			bomb_loc_2D.append((loc // width, loc % width))   # // = integer division
-		# print(bomb_loc_2D)
 
 		return bomb_loc_2D
 
 	def pick(self, x, y, board_in_general):
 		# Check revealed
-		if self.display_board[x][y] == " " or self.display_board[x][y] == "F":
+		if self.display_board[x][y] == 0 or self.display_board[x][y] == "F":
 			print(f"Cell at {x}, {y} revealed already\n")
 			return
 		
 		if self.actual_board[x][y] != 0:
 			self.display_board[x][y] = self.actual_board[x][y]
-			# print("KABOOM!")
 
 		# Flood reveal -> turn this to be a recursive function
 		elif self.actual_board[x][y] == 0:
-			self.display_board[x][y] = " "
+			self.display_board[x][y] = 0
 
 			# Check neighbors
 			for i in range(-1, 2): # to include 1
@@ -136,10 +144,8 @@ class MineSweeper:
 					if i == 0 and j == 0:
 						continue
 					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds
-						print(f"reveal: {new_x}, {new_y}")
-						if self.actual_board[new_x][new_y] == 0:
+						if self.actual_board[new_x][new_y] != "B":
 							self.pick(new_x, new_y, board_in_general)
-			
 			print()
 
 		self.update_display_board()
@@ -158,9 +164,21 @@ class MineSweeper:
 	def update_display_board(self):
 		for i in range(self.height):
 			for j in range(self.width):
-				updated_text = self.display_board[i][j]
+				cell_value = self.display_board[i][j]
+				updated_text = cell_value
+				font_color = "#fff"
+				cell_color = "#eeeeee"
+
+				if cell_value == "B":
+					cell_color = self.BOMBCellColor
+				elif cell_value != self.emptyCellSign:
+					# print(f"Cell Value: {cell_value} at Y{i}, X{j}")
+					cell_color = self.numberedCellColor[cell_value]
+					
+
 				cells = self.display_cells[i][j]
-				cells.config(text = updated_text)
+				cells.config(text = updated_text, fg = font_color, bg = cell_color)
+
 
 	def generate_cell_num(self):
 		for x in range(self.height):
@@ -181,7 +199,7 @@ class MineSweeper:
 
 
 
-MineSweeper()
+MineSweeper(8, 8, 8)
 
 
 

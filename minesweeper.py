@@ -74,7 +74,7 @@ class MineSweeper:
 
 			self.display_cells.append(self.display_rows)
 			self.actual_cells.append(self.actual_rows)
-			
+
 		self.root.mainloop()
 
 	def generate_actual_board(self, width = 8, height = 8, bombs = 5):
@@ -143,21 +143,29 @@ class MineSweeper:
 	def pick(self, x, y, board_in_general):
 
 		# Check revealed
-		if self.display_board[x][y] == "0" or self.display_board[x][y] == "F":
-			print(f"Cell at {x}, {y} is flagged, cannot pick\n")
+		if self.display_board[x][y] == " " or self.display_board[x][y] == "F":
+			print(f"Cell at {x}, {y} revealed already\n")
 			return
 		
-		# Flood reveal
+		# Flood reveal -> turn this to be a recursive function
+		if self.actual_board[x][y] == "B":
+			self.display_board[x][y] = self.actual_board[x][y]
+			print("KABOOM!")
+
 		if self.actual_board[x][y] == " ":
-			self.display_board[x][y] = " "
+			self.display_board[x][y] = self.actual_board[x][y]
 
 			# Check neighbors
-			for i in range(-1, 1):
-				for j in range(-1, 1):
-					if (self.actual_board[x + i][y + j] == " "):
-						self.display_board[x + i][y + j] = " "
+			for i in range(-1, 2): # to include 1
+				for j in [-1, 0, 1]: # same as above
+					new_x = i + x
+					new_y = j + y
+					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds
+						print(f"reveal: {new_x}, {new_y}")
+						if self.actual_board[new_x][new_y] == " ":
+							self.pick(new_x, new_y, board_in_general)
 			
-			self.print_board(self.display_board)
+			# self.print_board(self.display_board)
 			print()
 
 		self.update_display_board()
@@ -167,7 +175,7 @@ class MineSweeper:
 		elif board_in_general == self.display_board:
 			print("Picking from Display Board")	
 		try:
-			board_in_general[x][y] = "2"
+			board_in_general[x][y]
 			print(f"pick at {x}, {y}\n")
 		except IndexError as e:
 			print(f"IndexErr(pick:): {x}, {y} is out of range\n")

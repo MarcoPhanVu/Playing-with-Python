@@ -31,7 +31,11 @@ class MineSweeper:
 		self.actual_board_frame.grid(row = 0, column = 1, padx = 24)
 
 		# Generate Boards
-		self.display_board = [[0 for cell in range(width)] for cell in range(height)]
+			# Reference to cells
+		self.display_cells = []
+		self.actual_cells = []
+
+		self.display_board = [["-" for cell in range(width)] for cell in range(height)]
 
 		self.generate_actual_board(self.width, self.height, self.bombs)
 		print("Actual Board:")
@@ -43,6 +47,8 @@ class MineSweeper:
 		for i in range(self.height):
 			self.display_board_frame.rowconfigure(i, weight = 1)
 			self.actual_board_frame.rowconfigure(i, weight = 1)
+			self.display_rows = []
+			self.actual_rows = []
 
 			for j in range(self.width):
 				self.display_board_frame.columnconfigure(j, weight = 1)
@@ -50,11 +56,12 @@ class MineSweeper:
 
 				cell = tk.Button(	self.display_board_frame,
 									# text = f"{j} d",
-									text = f"{self.actual_board[i][j]}",
+									text = f"{self.display_board[i][j]}",
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
 				cell.grid(row = i, column = j, sticky = "NSEW")
+				self.display_rows.append(cell)
 
 				cell = tk.Button(	self.actual_board_frame,
 									# text = f"{j} a",
@@ -63,7 +70,11 @@ class MineSweeper:
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
 				cell.grid(row = i, column = j, sticky = "NSEW")
+				self.actual_rows.append(cell)
 
+			self.display_cells.append(self.display_rows)
+			self.actual_cells.append(self.actual_rows)
+			
 		self.root.mainloop()
 
 	def generate_actual_board(self, width = 8, height = 8, bombs = 5):
@@ -71,16 +82,12 @@ class MineSweeper:
 		bomb_locs = self.__generate_bombs(width, height, bombs)
 
 		for i in range(height):
-			board.append([])    #ensure row existed
+			board.append([])
 			for j in range(width):
-				# if (bombs > 0) and (random.randint(0, int(width + height)) == int((width + height)/2)):
-				#     board[i].append(1)
-				#     bombs -= 1
-				#     continue
 				if (i, j) in bomb_locs:
-					board[i].append(1)
+					board[i].append("B")
 				else:
-					board[i].append(0)
+					board[i].append(" ")
 		self.actual_board = board
 
 	def __generate_bombs(self, width, height, bombs):
@@ -108,7 +115,7 @@ class MineSweeper:
 	def draw_board(self, board_in_general):
 		height = len(board_in_general)
 		width = len(board_in_general[0])
-		for i in range(height): #y, x order
+		for i in range(height):
 			if (i == 0):
 				for j in range(width + 1):
 					print(j, end = "  ")
@@ -118,67 +125,62 @@ class MineSweeper:
 				if (j == 0):
 					print(chr(i + 65), end = " ")
 				
-				if board_in_general[i][j] == 1:
+				if board_in_general[i][j] == "B":
 					print("🟥", end = " ")
-				elif board_in_general[i][j] == 0:
+				elif board_in_general[i][j] == " ":
 					print("⬛", end = " ")
-				elif board_in_general[i][j] == 2:
+				elif board_in_general[i][j] == "F":
 					print("🚩", end = " ")
 			print()
 
 	def flag(self, x, y, board_in_general):
 		try:
-			board_in_general[x][y] = 2
+			board_in_general[x][y] = "F"
 			print(f"flag at {x}, {y}")
 		except IndexError as e:
 			print(f"IndexErr(flag): {x}, {y} is out of range")
 
 	def pick(self, x, y, board_in_general):
+
+		# Check revealed
+		if self.display_board[x][y] == "0" or self.display_board[x][y] == "F":
+			print(f"Cell at {x}, {y} is flagged, cannot pick\n")
+			return
+		
+		# Flood reveal
+		if self.actual_board[x][y] == " ":
+			self.display_board[x][y] = " "
+
+			# Check neighbors
+			for i in range(-1, 1):
+				for j in range(-1, 1):
+					if (self.actual_board[x + i][y + j] == " "):
+						self.display_board[x + i][y + j] = " "
+			
+			self.print_board(self.display_board)
+			print()
+
+		self.update_display_board()
+		#debug session
+		if board_in_general == self.actual_board:
+			print("Picking from Actual Board")
+		elif board_in_general == self.display_board:
+			print("Picking from Display Board")	
 		try:
 			board_in_general[x][y] = "2"
-			print(f"pick at {x}, {y}")
+			print(f"pick at {x}, {y}\n")
 		except IndexError as e:
-			print(f"IndexErr(pickl): {x}, {y} is out of range")
+			print(f"IndexErr(pick:): {x}, {y} is out of range\n")
 
 	def print_board(self, board_in_general):
 		for row in board_in_general:
 			print(row)
 
+	def update_display_board(self):
+		for i in range(self.height):
+			for j in range(self.width):
+				updated_text = self.display_board[i][j]
+				cells = self.display_cells[i][j]
+				cells.config(text = updated_text)
+
 MineSweeper()
-
-
-
-class NOTMineSweeperLOL:
-	width = 8
-	height = 8
-	bombs = 5
-	actual_board_state = []
-	display_board_state = []
-
-	def __init__(self):
-		self.root = tk.Tk()
-		# @[shortened]
-		self.main_UI = tk.Frame(self.root)
-		self.display_board_frame = tk.Frame(self.main_UI, bg= "light grey")
-		self.actual_board_frame = tk.Frame(self.main_UI, bg= "light grey")
-		# [shortened]@
-
-		#I'm not sure about this part, is this creating the actual_board correctly?
-		self.generate_actual_board(self.width, self.height, self.bombs)
-
-	def generate_bombs(width, height, bombs):
-		bomb_loc_2D = []
-		return bomb_loc_2D
-	
-	def generate_actual_board(self, width = 8, height = 8, bombs = 5):
-		board = []
-		bomb_locs = self.__generate_bombs(width, height, bombs)
-
-		for i in range(height):
-			board.append([])
-			for j in range(width):
-				if (i, j) in bomb_locs:
-					board[i].append(1)
-				else:
-					board[i].append(0)
-		self.actual_board = board

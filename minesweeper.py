@@ -9,8 +9,8 @@ class MineSweeper:
 		self.width = width
 		self.height = height
 		self.bombs = bombs
-		self.actual_board_state = []
-		self.display_board_state = []
+		self.actual_board = []
+		self.display_board = []
 
 		# Generate GUI
 		self.root = tk.Tk()
@@ -32,7 +32,8 @@ class MineSweeper:
 
 		# Generate Boards
 		self.generate_board(self.width, self.height, self.bombs)
-
+		print("Actual Board:")
+		self.print_board(self.actual_board)
 
 		# Visualize Boards for display and actual
 		for i in range(self.height):
@@ -43,18 +44,27 @@ class MineSweeper:
 				self.display_board_frame.columnconfigure(j, weight = 1)
 				self.actual_board_frame.columnconfigure(j, weight = 1)
 
-				print("actualBoardState: ", self.actual_board_state)
+				print("actualBoardState: ", self.actual_board)
 
-				cell = tk.Button(self.display_board_frame, text = f"{j} d", font= self.fontDefault, command= self.pick(i, j, self.display_board_state))
+				cell = tk.Button(	self.display_board_frame,
+									text = f"{j} d",
+									font = self.fontDefault,
+									command = lambda i = i, j = j: 
+									self.pick(i, j, self.display_board))
 				cell.grid(row= i, column= j, sticky="nsew")
-				cell = tk.Button(self.actual_board_frame, text = f"{j} a", font= self.fontDefault, command= self.pick(i, j, self.actual_board_state))
+
+				cell = tk.Button(	self.actual_board_frame,
+									text = f"{j} a",
+									font = self.fontDefault,
+									command = lambda i = i, j = j: 
+									self.pick(i, j, self.actual_board))
 				cell.grid(row= i, column= j, sticky="nsew")
 
 		self.root.mainloop()
 
 	def generate_board(self, width = 8, height = 8, bombs = 5):
 		board = []
-		bomb_locs = self.generate_bombs(width, height, bombs)
+		bomb_locs = self.__generate_bombs(width, height, bombs)
 
 		for i in range(height):
 			board.append([])    #ensure row existed
@@ -69,7 +79,7 @@ class MineSweeper:
 					board[i].append(0)
 		self.actual_board = board
 
-	def generate_bombs(self, width, height, bombs):
+	def __generate_bombs(self, width, height, bombs):
 		#randomize bomb locs 1D array
 		bomb_loc_1D = []
 		temp = 0
@@ -80,14 +90,14 @@ class MineSweeper:
 			temp = random.randint(0, width * height)
 
 		bomb_loc_1D = [3, 18, 8, 55, 12] 
-		print(bomb_loc_1D)
+		# print(bomb_loc_1D)
 
 		# convert to 2D
 		bomb_loc_2D = []
 		for loc in bomb_loc_1D:
 			loc -= 1 #compensate for 0
 			bomb_loc_2D.append((loc // width, loc % width))   # // = integer division
-		print(bomb_loc_2D)
+		# print(bomb_loc_2D)
 
 		return bomb_loc_2D
 
@@ -126,43 +136,11 @@ class MineSweeper:
 		except IndexError as e:
 			print(f"IndexErr(pickl): {x}, {y} is out of range")
 
-	def print_board(board_in_general):
+	def print_board(self, board_in_general):
 		for row in board_in_general:
 			print(row)
 
-def main():
-
-	game_over = False
-	board_state = generate_board()
-	board_display = []
-	for i in range(len(board_state)):
-		board_display.append([])
-		for j in range(len(board_state[0])):
-			board_display[i].append(0)
-
-	# print_board(board_display)
-
 MineSweeper()
-
-	# while(not game_over):
-	#     # choice = int(input("Flag(1) or Pick(0)?:"))
-	#     choice = 1
-	#     if (choice == 1):
-	#         # flag_loc = input("Please choose location:")
-	#         flag_loc = "C2"
-	#         flag(flag_loc[0], flag_loc[1], board_state)
-	#     elif (choice == 0):
-	#         pick_loc = input("Please choose location:")
-	#         pick(pick_loc[0], pick_loc[1], board_state)
-	#     else:
-	#         print("Invalid input")
-	#         continue
-	#     draw_board(board_state)
-
-	#     game_over = True
-# main()
-
-
 
 
 
@@ -192,4 +170,5 @@ class NOTMineSweeperLOL:
 		self.actual_board = board
 
 	def generate_bombs(width, height, bombs):
+		bomb_loc_2D = []
 		return bomb_loc_2D

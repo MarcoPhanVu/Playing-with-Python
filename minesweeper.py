@@ -1,6 +1,11 @@
 import random
 import math
 import tkinter as tk
+from tkinter import *
+
+def cell_right_click(event):
+	event.widget.configure(bg="red")
+	print("cell clicked")
 
 class MineSweeper:
 	fontDefault = ("Courier New", 12)
@@ -66,6 +71,7 @@ class MineSweeper:
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
+				cell.bind("<Button-3>", cell_right_click)
 				cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
 				self.display_rows.append(cell)
@@ -77,6 +83,7 @@ class MineSweeper:
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
+				cell.bind("<Button-3>", cell_right_click)
 				cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
 				self.actual_rows.append(cell)
@@ -196,11 +203,8 @@ class MineSweeper:
 										self.actual_board[x][y] += 1
 
 
-
-MineSweeper(24, 24, 100)
-
-
-
+if __name__ == "__main__":
+	MineSweeper(16, 16, 36)
 
 # TODO:
 # - Flagging cells

@@ -162,20 +162,8 @@ class MineSweeper:
 			self.display_board[x][y] = self.actual_board[x][y]
 
 		# Flood reveal -> turn this to be a recursive function
-		elif self.actual_board[x][y] == 0:
-			self.display_board[x][y] = 0
-
-			# Check neighbors
-			for i in range(-1, 2):
-				for j in [-1, 0, 1]:
-					new_x = i + x
-					new_y = j + y
-					if i == 0 and j == 0:
-						continue
-					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds(flood reveal)
-						if self.actual_board[new_x][new_y] != "B":
-							self.pick(new_x, new_y, board_in_general)
-			print()
+		if self.actual_board[x][y] == 0:
+			self.flood_reveal(x, y)
 
 		self.update_display_board()
 		#debug session
@@ -189,8 +177,32 @@ class MineSweeper:
 		except IndexError as e:
 			print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
 
-	def flood_reveal(self, x, y):
-		pass
+	def flood_reveal(self, x, y): # Recursive function
+		self.display_board[x][y] = 0
+
+		# Check neighbors -> 2 ways
+
+		# OPTION 1
+		# Explicitly listing all 4 cells
+		# directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+		# for dx, dy in directions:
+		# 	new_x = x + dx
+		# 	new_y = y + dy
+
+		# OPTION 2
+		# Loop through all 9 cells
+		for i in range(-1, 2):
+			for j in [-1, 0, 1]: # same as above
+				if abs(i) == abs(j): # 0 -> self.location, # -1, 1 -> diagonal
+					continue
+
+				new_x = x + i
+				new_y = y + j
+
+				if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds(flood reveal)
+					if self.actual_board[new_x][new_y] != "B":
+						self.pick(new_x, new_y, self.display_board)
+		print()
 
 	def update_display_board(self):
 		for i in range(self.height):
@@ -231,7 +243,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 16, 16, 64)
+	MineSweeper(root, 16, 16, 36)
 
 # TODO:
 # - Flagging cells *

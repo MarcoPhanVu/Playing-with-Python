@@ -149,7 +149,7 @@ class MineSweeper:
 	def pick(self, x, y, board_in_general):
 		# Check revealed
 		if self.display_board[x][y] == 1 or self.display_board[x][y] == "F":
-			print(f"Cell at [{x}][{y}] revealed already\n")
+			print(f"Cell at [{x}][{y}] revealed already")
 			print(f"Show surrounding cells around Cell:[{x}][{y}]\n")
 
 			# # Show surronding cells
@@ -165,6 +165,7 @@ class MineSweeper:
 		# Flood reveal -> turn this to be a recursive function
 		if self.actual_board[x][y] == 0:
 			self.__flood_reveal(x, y)
+			# pass
 
 		self.__update_display_board()
 
@@ -180,7 +181,7 @@ class MineSweeper:
 			print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
 
 	def __flood_reveal(self, x, y): # Recursive function
-		self.display_board[x][y] = 0
+		self.display_board[x][y] = 1
 
 		# Check neighbors -> 2 ways
 
@@ -209,21 +210,20 @@ class MineSweeper:
 	def __update_display_board(self):
 		for i in range(self.height):
 			for j in range(self.width):
+				cell_color = "#eeeeee"
 				font_color = "#eeeeee"
-				cell_color = "#9e49c0"
 
-				cell_value = self.display_board[i][j]
+				display_state = self.display_board[i][j]
+				actual_value = self.actual_board[i][j]
+				if actual_value == "B":
+					actual_value = 9
+
 				updated_text = self.actual_board[i][j]
 
-				if cell_value == "F":
-					updated_text = "🚩"
-
-				if cell_value == "B":
-					cell_color = self.BOMBCellColor
-				elif cell_value != 0:
-					cell_color = self.numberedCellColor[updated_text]
+				if display_state == 1:
+					cell_color = self.numberedCellColor[actual_value]
 				else:
-					font_color = "#eeeeee"
+					font_color = cell_color
 					
 				cells = self.display_cells[i][j]
 				cells.config(text = updated_text, fg = font_color, bg = cell_color)

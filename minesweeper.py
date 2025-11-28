@@ -147,7 +147,15 @@ class MineSweeper:
 	def pick(self, x, y, board_in_general):
 		# Check revealed
 		if self.display_board[x][y] == self.actual_board[x][y] or self.display_board[x][y] == "F":
-			print(f"Cell at {x}, {y} revealed already\n")
+			print(f"Cell at [{x}][{y}] revealed already\n")
+			print(f"Show surrnding cells around Cell:[{x}][{y}]\n")
+
+			# # Show surronding cells
+			# for i in range(-1, 2): # to include 1
+			# 	for j in [-1, 0, 1]: # same as above
+			# 		new_x = i + x
+			# 		new_y = j + y
+			# 		self.pick(new_x, new_y, board_in_general)
 			return
 		
 		if self.actual_board[x][y] != 0:
@@ -158,13 +166,13 @@ class MineSweeper:
 			self.display_board[x][y] = 0
 
 			# Check neighbors
-			for i in range(-1, 2): # to include 1
-				for j in [-1, 0, 1]: # same as above
+			for i in range(-1, 2):
+				for j in [-1, 0, 1]:
 					new_x = i + x
 					new_y = j + y
 					if i == 0 and j == 0:
 						continue
-					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds
+					if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds(flood reveal)
 						if self.actual_board[new_x][new_y] != "B":
 							self.pick(new_x, new_y, board_in_general)
 			print()
@@ -177,10 +185,12 @@ class MineSweeper:
 			print("Picking from Display Board")	
 		try:
 			board_in_general[x][y]
-			print(f"pick at {x}, {y}\n")
+			print(f"pick at [{x}][{y}]\n")
 		except IndexError as e:
-			print(f"IndexErr(pick:): {x}, {y} is out of range\n")
+			print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
 
+	def flood_reveal(self, x, y):
+		pass
 
 	def update_display_board(self):
 		for i in range(self.height):
@@ -221,7 +231,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 16, 16, 128)
+	MineSweeper(root, 16, 16, 64)
 
 # TODO:
 # - Flagging cells *

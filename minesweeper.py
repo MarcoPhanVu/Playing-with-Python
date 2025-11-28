@@ -2,24 +2,31 @@ import random
 import math
 import tkinter as tk
 from tkinter import *
-
-def cell_right_click(event):
+# Define what will cell behave when rightclick
+def cell_flagged_triggered(event):
 	event.widget.configure(bg="red")
-	print("cell clicked")
+	print(event.winfo_children())
+	print(type(event))
+	print("cell flagged")
 
 class MineSweeper:
 	fontDefault = ("Courier New", 12)
 	BOMBCellColor = "#000"
 	emptyCellSign = "@"
 	numberedCellColor = [
-		"#899D78",
-		"#F0BCD4",
-		"#73628a",
-		"#8A1C7C",
-		"#DA4167"
+		"#BFD7EA", #0
+		"#60938C",	#1
+		"#508CA4",	#2
+		"#286E69",	#3
+		"#295166",	#4
+		"#004F2D",	#5
+		"#354C7C",	#6
+		"#55444C",	#7
+		"#0D2463",	#8
+		"#222E50"	#Bomb
 	]
 
-	def __init__(self, width = 8, height = 8, bombs = 5):
+	def __init__(self, root, width = 8, height = 8, bombs = 5):
 		self.width = width
 		self.height = height
 		self.bombs = bombs
@@ -27,22 +34,30 @@ class MineSweeper:
 		self.display_board = []
 
 		# Generate GUI
-		self.root = tk.Tk()
+		self.root = root
 		self.root.geometry("1920x1080")
 		self.root.title("Minesweeper")
 
 		self.label = tk.Label(self.root, text="Minesweeper", font=("Courier New", 32))
 		self.label.pack()
 
-		self.main_UI = tk.Frame(self.root)
+		# Main UI
+		self.main_UI = tk.Frame(self.root, bg= "#30343F")
 		self.main_UI.pack(fill = "both", expand = True)
 		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
+		
+		self.display_board_frame = tk.Frame(self.main_UI, bg= "#EA638C")
+		self.display_board_frame.grid(row = 0, column = 0, padx = 24, pady = 36)
+		
+		# Actual Board Display for debugging
 		self.main_UI.columnconfigure(1, weight = 1, minsize = 200)
+		self.actual_board_frame = tk.Frame(self.main_UI, bg= "#89023E")
+		self.actual_board_frame.grid(row = 0, column = 1, padx = 24, pady = 36)
 
-		self.display_board_frame = tk.Frame(self.main_UI, bg= "light grey")
-		self.display_board_frame.grid(row = 0, column = 0, padx = 24)
-		self.actual_board_frame = tk.Frame(self.main_UI, bg= "light grey")
-		self.actual_board_frame.grid(row = 0, column = 1, padx = 24)
+		# Menu for debugging
+		self.debug_menu = tk.Frame(self.root, bg="#FFD9DA")
+		self.debug_menu.pack(fill = "both", expand = True)
+
 
 		# Generate Boards
 			# Reference to cells
@@ -56,8 +71,9 @@ class MineSweeper:
 		# Visualize Boards for display and actual
 		for i in range(self.height):
 			self.display_board_frame.rowconfigure(i, weight = 1)
-			self.actual_board_frame.rowconfigure(i, weight = 1)
 			self.display_rows = []
+
+			self.actual_board_frame.rowconfigure(i, weight = 1)
 			self.actual_rows = []
 
 			for j in range(self.width):
@@ -71,7 +87,7 @@ class MineSweeper:
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.display_board))
-				cell.bind("<Button-3>", cell_right_click)
+				cell.bind("<Button-3>", cell_flagged_triggered)
 				cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
 				self.display_rows.append(cell)
@@ -83,7 +99,7 @@ class MineSweeper:
 									font = self.fontDefault,
 									command = lambda i = i, j = j: 
 									self.pick(i, j, self.actual_board))
-				cell.bind("<Button-3>", cell_right_click)
+				cell.bind("<Button-3>", cell_flagged_triggered)
 				cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
 				self.actual_rows.append(cell)
@@ -130,7 +146,7 @@ class MineSweeper:
 
 	def pick(self, x, y, board_in_general):
 		# Check revealed
-		if self.display_board[x][y] == 0 or self.display_board[x][y] == "F":
+		if self.display_board[x][y] == self.actual_board[x][y] or self.display_board[x][y] == "F":
 			print(f"Cell at {x}, {y} revealed already\n")
 			return
 		
@@ -204,10 +220,11 @@ class MineSweeper:
 
 
 if __name__ == "__main__":
-	MineSweeper(16, 16, 36)
+	root = tk.Tk()
+	MineSweeper(root, 16, 16, 128)
 
 # TODO:
-# - Flagging cells
+# - Flagging cells *
 # - Right click to flag
 # - Win/Lose detection
 # - Better flood reveal (show numbers around revealed 0s)

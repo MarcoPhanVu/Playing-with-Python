@@ -9,15 +9,15 @@ class MineSweeper:
 	BOMBCellColor = "#000"
 	FlaggedCellColor = "#F87575"
 	UntouchedColor = "#eeeeee"
-	emptyCellSign = 0
+	emptyCellSign = "H"
 	numberedCellColor = [
 		"#BFD7EA", #0
-		"#60938C",	#1
-		"#508CA4",	#2
-		"#286E69",	#3
-		"#295166",	#4
-		"#004F2D",	#5
-		"#354C7C",	#6
+		"#93B2AE",	#1
+		"#77A1B1",	#2
+		"#4E8682",	#3
+		"#4C7287",	#4
+		"#33795B",	#5
+		"#5C709A",	#6
 		"#55444C",	#7
 		"#0D2463",	#8
 		"#222E50"	#Bomb
@@ -61,7 +61,7 @@ class MineSweeper:
 		self.display_cells = []
 		self.actual_cells = []
 
-		# Values: [0] for hidden, [1] for revealed, [F] for flagged
+		# Values: [H] for hidden, [R] for revealed, [F] for flagged
 		self.display_board = [[self.emptyCellSign for cell in range(width)] for cell in range(height)]
 
 		# Values: [0-9] for amount of bombs around it and [B] is for bomb 
@@ -149,44 +149,50 @@ class MineSweeper:
 
 	def pick(self, x, y, board_in_general):
 		# Check revealed
-		if self.display_board[x][y] == 1:
-			print(f"Cell at [{x}][{y}] revealed already")
-			print(f"Show surrounding cells around Cell:[{x}][{y}]\n")
-
-			# # Show surronding cells
-			# for i in range(-1, 2): # to include 1
-			# 	for j in [-1, 0, 1]: # same as above
-			# 		new_x = i + x
-			# 		new_y = j + y
-			# 		self.pick(new_x, new_y, board_in_general)
+		# if self.display_board[x][y] == "R" and self.actual_board[x][y] != 0:
+		if self.display_board[x][y] == "R":
+			# Only reveal around if this is a non-zero cell
+			if self.actual_board[x][y] != 0 and self.actual_board[x][y] != "B":
+				try:
+					self.__cell_reveal_around(x, y)
+				except IndexError as e:
+					print(e)
+				except RecursionError as e:
+					print(e)
 			return
 		
-		if self.display_board[x][y] == "F":
+		if self.display_board[x][y] == "F": # skip flagged cells
 			return
-
-		self.display_board[x][y] = 1 # revealed
 
 		# Flood reveal -> turn this to be a recursive function
 		if self.actual_board[x][y] == 0:
 			self.__flood_reveal(x, y)
 			# pass
 
+		self.display_board[x][y] = "R" # reveal current cell
+
 		self.__update_display_board()
 
-		#debug session
-		if board_in_general == self.actual_board:
-			print("Picking from Actual Board")
-		elif board_in_general == self.display_board:
-			print("Picking from Display Board")	
-		try:
-			board_in_general[x][y]
-			print(f"pick at [{x}][{y}]\n")
-		except IndexError as e:
-			print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
+		# #debug session
+		# if board_in_general == self.actual_board:
+		# 	print("Picking from Actual Board")
+		# elif board_in_general == self.display_board:
+		# 	print("Picking from Display Board")	
+		# try:
+		# 	board_in_general[x][y]
+		# 	print(f"pick at [{x}][{y}]\n")
+		# except IndexError as e:
+		# 	print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
 
 	def __flood_reveal(self, x, y): # Recursive function
-		self.display_board[x][y] = 1
+		print("Flood reveal entered")
+		if self.display_board[x][y] == "R" or self.actual_board[x][y] == "B": # Skip if revealed
+			return
 
+		self.display_board[x][y] = "R"
+
+		if self.actual_board[x][y] != 0: # Stop if not 0
+			return
 		# Check neighbors -> 2 ways
 
 		# OPTION 1
@@ -198,8 +204,8 @@ class MineSweeper:
 
 		# OPTION 2
 		# Loop through all 9 cells
-		for i in range(-1, 2):
-			for j in [-1, 0, 1]: # same as above
+		for i in [-1, 0, 1]:
+			for j in [-1, 0, 1]:
 				if abs(i) == abs(j): # 0 -> self.location, # -1, 1 -> diagonal
 					continue
 
@@ -207,9 +213,8 @@ class MineSweeper:
 				new_y = y + j
 
 				if (0 <= new_x < self.height) and (0 <= new_y < self.width): # ensure within bounds(flood reveal)
-					if self.actual_board[new_x][new_y] != "B":
-						self.pick(new_x, new_y, self.display_board)
-		print()
+					if self.display_board[new_x][new_y] != "R" and self.actual_board != "B": # MAJOR CHANGE! Flood reveal calls itself, not pick()
+						self.__flood_reveal(new_x, new_y)
 
 	def __update_display_board(self):
 		for i in range(self.height):
@@ -223,14 +228,14 @@ class MineSweeper:
 				if actual_value == "B":
 					actual_value = 9
 
-				if display_state == 1:
+				if display_state == "R":
 					cell_color = self.numberedCellColor[actual_value]
 					updated_text = self.actual_board[i][j]
 
 				if display_state == "F":
 					cell_color = self.FlaggedCellColor
 
-				# if display_state == 0:
+				# if display_state == "H":
 				# 	font_color = cell_color
 					
 				cells = self.display_cells[i][j]
@@ -259,26 +264,56 @@ class MineSweeper:
 		y = cell.row_pos
 		x = cell.col_pos
 
-		if self.display_board[y][x] == 1: # Do not flag revealed cells
+		if self.display_board[y][x] == "R": # Do not flag revealed cells
 			return
 		
-		if self.display_board[y][x] == "F": # Do not flag revealed cells
+		if self.display_board[y][x] == "F": # Do not flag flagged cells
 			cell.configure(bg = self.UntouchedColor, text = self.UntouchedColor)
-			self.display_board[y][x] = 0
+			self.display_board[y][x] = "H"
 			return
 		 
 		self.display_board[y][x] = "F"
 		cell.configure(bg = self.FlaggedCellColor, text = "")
+
+	def __cell_reveal_around(self, x, y):
+		bombs_around = self.actual_board[x][y]
+		flag_counts = 0
+		for i in [-1, 0, 1]:
+			for j in [-1, 0, 1]:
+				new_x = x + i
+				new_y = y + j
+
+				if (0 <= new_x < self.height) and (0 <= new_y < self.width): # Ensure within boundaries
+					if self.display_board[new_x][new_y] == "R": # Skip if revealed
+						continue
+
+					if self.display_board[new_x][new_y] == "F":
+						flag_counts += 1
+						if flag_counts > bombs_around:
+							print("Too many flags")
+							return
+						
+						if self.actual_board[new_x][new_y] == "B":
+							print(f"Cell truly has bomb at [{new_x}][{new_y}]\n")
+							continue
+
+		if flag_counts == bombs_around:
+			for i in [-1, 0, 1]:
+				for j in [-1, 0, 1]:
+					new_x = x + i
+					new_y = y + j
+
+					if (0 <= new_x < self.height) and (0 <= new_y < self.width):
+						if self.display_board[new_x][new_y] == "H":
+							self.pick(new_x, new_y, self.display_board) # Only pick if hidden
+
 
 if __name__ == "__main__":
 	root = tk.Tk()
 	MineSweeper(root, 16, 16, 36)
 
 # TODO:
-# - Flagging cells *
-# - Right click to flag
 # - Win/Lose detection
-# - Better flood reveal (show numbers around revealed 0s)
 # - Timer
 # - Better GUI design?
 # - Editable board size and bomb count

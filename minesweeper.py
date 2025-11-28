@@ -12,7 +12,7 @@ def cell_flagged_triggered(event):
 class MineSweeper:
 	fontDefault = ("Courier New", 12)
 	BOMBCellColor = "#000"
-	emptyCellSign = "@"
+	emptyCellSign = 0
 	numberedCellColor = [
 		"#BFD7EA", #0
 		"#60938C",	#1
@@ -46,16 +46,16 @@ class MineSweeper:
 		self.main_UI.pack(fill = "both", expand = True)
 		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
 		
-		self.display_board_frame = tk.Frame(self.main_UI, bg= "#EA638C")
+		self.display_board_frame = tk.Frame(self.main_UI, bg = "#EA638C")
 		self.display_board_frame.grid(row = 0, column = 0, padx = 24, pady = 36)
 		
 		# Actual Board Display for debugging
 		self.main_UI.columnconfigure(1, weight = 1, minsize = 200)
-		self.actual_board_frame = tk.Frame(self.main_UI, bg= "#89023E")
+		self.actual_board_frame = tk.Frame(self.main_UI, bg = "#89023E")
 		self.actual_board_frame.grid(row = 0, column = 1, padx = 24, pady = 36)
 
 		# Menu for debugging
-		self.debug_menu = tk.Frame(self.root, bg="#FFD9DA")
+		self.debug_menu = tk.Frame(self.root, bg ="#FFD9DA")
 		self.debug_menu.pack(fill = "both", expand = True)
 
 
@@ -64,8 +64,10 @@ class MineSweeper:
 		self.display_cells = []
 		self.actual_cells = []
 
+		# Values: [0] for hidden, [1] for revealed, [F] for flagged
 		self.display_board = [[self.emptyCellSign for cell in range(width)] for cell in range(height)]
 
+		# Values: [0-9] for amount of bombs around it and [B] is for bomb 
 		self.__generate_actual_board(self.width, self.height, self.bombs)
 
 		# Visualize Boards for display and actual
@@ -146,26 +148,26 @@ class MineSweeper:
 
 	def pick(self, x, y, board_in_general):
 		# Check revealed
-		if self.display_board[x][y] == self.actual_board[x][y] or self.display_board[x][y] == "F":
+		if self.display_board[x][y] == 1 or self.display_board[x][y] == "F":
 			print(f"Cell at [{x}][{y}] revealed already\n")
-			print(f"Show surrnding cells around Cell:[{x}][{y}]\n")
+			print(f"Show surrounding cells around Cell:[{x}][{y}]\n")
 
-			# Show surronding cells
-			for i in range(-1, 2): # to include 1
-				for j in [-1, 0, 1]: # same as above
-					new_x = i + x
-					new_y = j + y
-					self.pick(new_x, new_y, board_in_general)
+			# # Show surronding cells
+			# for i in range(-1, 2): # to include 1
+			# 	for j in [-1, 0, 1]: # same as above
+			# 		new_x = i + x
+			# 		new_y = j + y
+			# 		self.pick(new_x, new_y, board_in_general)
 			return
 		
-		if self.actual_board[x][y] != 0:
-			self.display_board[x][y] = self.actual_board[x][y]
+		self.display_board[x][y] = 1 # revealed
 
 		# Flood reveal -> turn this to be a recursive function
 		if self.actual_board[x][y] == 0:
 			self.__flood_reveal(x, y)
 
 		self.__update_display_board()
+
 		#debug session
 		if board_in_general == self.actual_board:
 			print("Picking from Actual Board")
@@ -211,16 +213,15 @@ class MineSweeper:
 				cell_color = "#9e49c0"
 
 				cell_value = self.display_board[i][j]
-				updated_text = cell_value
+				updated_text = self.actual_board[i][j]
 
 				if cell_value == "F":
 					updated_text = "🚩"
 
 				if cell_value == "B":
 					cell_color = self.BOMBCellColor
-				elif cell_value != self.emptyCellSign:
-					# print(f"Cell Value: {cell_value} at Y{i}, X{j}")
-					cell_color = self.numberedCellColor[cell_value]
+				elif cell_value != 0:
+					cell_color = self.numberedCellColor[updated_text]
 				else:
 					font_color = "#eeeeee"
 					

@@ -3,15 +3,12 @@ import math
 import tkinter as tk
 from tkinter import *
 # Define what will cell behave when rightclick
-def cell_flagged_triggered(event):
-	event.widget.configure(bg="red")
-	event.widget.configure(bg="red")
-	print(type(event))
-	print("cell flagged")
 
 class MineSweeper:
 	fontDefault = ("Courier New", 12)
 	BOMBCellColor = "#000"
+	FlaggedCellColor = "#F87575"
+	UntouchedColor = "#eeeeee"
 	emptyCellSign = 0
 	numberedCellColor = [
 		"#BFD7EA", #0
@@ -88,7 +85,9 @@ class MineSweeper:
 											font = self.fontDefault,
 											command = lambda i = i, j = j: 
 											self.pick(i, j, self.display_board))
-				display_cell.bind("<Button-3>", cell_flagged_triggered)
+				display_cell.bind("<Button-3>", self.__cell_flagged_toggle)
+				display_cell.row_pos = i # ROW
+				display_cell.col_pos = j # COL
 				display_cell.value = "E" #empty
 				display_cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
@@ -100,7 +99,9 @@ class MineSweeper:
 											font = self.fontDefault,
 											command = lambda i = i, j = j: 
 											self.pick(i, j, self.actual_board))
-				actual_cell.bind("<Button-3>", cell_flagged_triggered)
+				actual_cell.bind("<Button-3>", self.__cell_flagged_toggle)
+				actual_cell.row_pos = i # ROW
+				actual_cell.col_pos = j # COL
 				actual_cell.value = self.actual_board[i][j]
 				actual_cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
@@ -148,7 +149,7 @@ class MineSweeper:
 
 	def pick(self, x, y, board_in_general):
 		# Check revealed
-		if self.display_board[x][y] == 1 or self.display_board[x][y] == "F":
+		if self.display_board[x][y] == 1:
 			print(f"Cell at [{x}][{y}] revealed already")
 			print(f"Show surrounding cells around Cell:[{x}][{y}]\n")
 
@@ -160,6 +161,9 @@ class MineSweeper:
 			# 		self.pick(new_x, new_y, board_in_general)
 			return
 		
+		if self.display_board[x][y] == "F":
+			return
+
 		self.display_board[x][y] = 1 # revealed
 
 		# Flood reveal -> turn this to be a recursive function
@@ -210,20 +214,24 @@ class MineSweeper:
 	def __update_display_board(self):
 		for i in range(self.height):
 			for j in range(self.width):
-				cell_color = "#eeeeee"
-				font_color = "#eeeeee"
+				cell_color = self.UntouchedColor
+				font_color = cell_color
+				updated_text = " "
 
 				display_state = self.display_board[i][j]
 				actual_value = self.actual_board[i][j]
 				if actual_value == "B":
 					actual_value = 9
 
-				updated_text = self.actual_board[i][j]
-
 				if display_state == 1:
 					cell_color = self.numberedCellColor[actual_value]
-				else:
-					font_color = cell_color
+					updated_text = self.actual_board[i][j]
+
+				if display_state == "F":
+					cell_color = self.FlaggedCellColor
+
+				# if display_state == 0:
+				# 	font_color = cell_color
 					
 				cells = self.display_cells[i][j]
 				cells.config(text = updated_text, fg = font_color, bg = cell_color)
@@ -246,6 +254,21 @@ class MineSweeper:
 									else:
 										self.actual_board[x][y] += 1
 
+	def __cell_flagged_toggle(self, event):
+		cell = event.widget
+		y = cell.row_pos
+		x = cell.col_pos
+
+		if self.display_board[y][x] == 1: # Do not flag revealed cells
+			return
+		
+		if self.display_board[y][x] == "F": # Do not flag revealed cells
+			cell.configure(bg = self.UntouchedColor, text = self.UntouchedColor)
+			self.display_board[y][x] = 0
+			return
+		 
+		self.display_board[y][x] = "F"
+		cell.configure(bg = self.FlaggedCellColor, text = "")
 
 if __name__ == "__main__":
 	root = tk.Tk()

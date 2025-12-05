@@ -1,4 +1,3 @@
-class Config_Editor:
 Vincent: 1000
 JJ: 820
 Ngoc: 800

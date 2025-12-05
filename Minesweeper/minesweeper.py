@@ -206,7 +206,8 @@ class MineSweeper:
 		# Loop through all 9 cells
 		for i in [-1, 0, 1]:
 			for j in [-1, 0, 1]:
-				if abs(i) == abs(j): # 0 -> self.location, # -1, 1 -> diagonal
+				# if abs(i) == abs(j): # 0 -> self.location, # -1, 1 -> diagonal
+				if i == 0 and j ==0:
 					continue
 
 				new_x = x + i

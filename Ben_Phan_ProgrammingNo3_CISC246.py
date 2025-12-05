@@ -75,8 +75,8 @@ def run_of_success(p: float, S: int, F: int, NUM_SIM: int) -> float:
 		if (F_count == F):
 			F_First += 1
 
-	print(f"S_first: {S_First}")
-	print(f"F_first: {F_First}")
+	# print(f"S_first: {S_First}")
+	# print(f"F_first: {F_First}")
 	return (float(S_First) / float(NUM_SIM))
 	
 
@@ -85,6 +85,5 @@ if __name__ == "__main__":
 	# print(f"Task 1: {sim_diff_integers(20, 4, 10000)}")
 	# print(f"Task 2: {gamblers_expected_time(10, 200, 0.8, 10000)} times")
 	print(f"Task 3: {run_of_success(0.7, 10, 5, 10000)} times")
-	print("mains")
 
 		

@@ -147,7 +147,7 @@ class MineSweeper:
 
 		return bomb_loc_2D
 
-	def pick(self, x, y, board_in_general):
+	def pick(self, x, y, board_in_general): # Works for both board
 		# Check revealed
 		# if self.display_board[x][y] == "R" and self.actual_board[x][y] != 0:
 		if self.display_board[x][y] == "R":

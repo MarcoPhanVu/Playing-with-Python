@@ -2,6 +2,7 @@ import random
 import math
 import tkinter as tk
 from tkinter import *
+from tkinter import messagebox
 # Define what will cell behave when rightclick
 
 class MineSweeper:
@@ -22,7 +23,7 @@ class MineSweeper:
 		"#0D2463",	#8
 		"#222E50"	#Bomb
 	]
-	def __init__(self, root: Tk, board: dict):
+	def __init__(self, root: tk.Tk, board: dict):
 		self.height = len(board)
 		self.width = len(board[0])
 		pass
@@ -47,7 +48,7 @@ class MineSweeper:
 		self.main_UI.pack(fill = "both", expand = True)
 		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
 		
-		self.display_board_frame = tk.Frame(self.main_UI, bg = "#EA638C")
+		self.display_board_frame = tk.Frame(self.main_UI, bg = "#95EA63")
 		self.display_board_frame.grid(row = 0, column = 0, padx = 24, pady = 36)
 		
 		# Actual Board Display for debugging
@@ -90,9 +91,8 @@ class MineSweeper:
 											command = lambda i = i, j = j: 
 											self.pick(i, j, self.display_board))
 				display_cell.bind("<Button-3>", self.__cell_flagged_toggle)
-				display_cell.row_pos = i # ROW
-				display_cell.col_pos = j # COL
-				display_cell.value = "E" #empty
+				display_cell.row_pos = i # ROW traverse (height)
+				display_cell.col_pos = j # COL traverse (width)
 				display_cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
 				self.display_rows.append(display_cell)
@@ -104,8 +104,8 @@ class MineSweeper:
 											command = lambda i = i, j = j: 
 											self.pick(i, j, self.actual_board))
 				actual_cell.bind("<Button-3>", self.__cell_flagged_toggle)
-				actual_cell.row_pos = i # ROW
-				actual_cell.col_pos = j # COL
+				actual_cell.row_pos = i # same with display
+				actual_cell.col_pos = j # same with display
 				actual_cell.value = self.actual_board[i][j]
 				actual_cell.grid(row = i, column = j, sticky = "NSEW")
 				# , padx = 1, pady = 1)
@@ -152,8 +152,11 @@ class MineSweeper:
 		return bomb_loc_2D
 
 	def pick(self, x, y, board_in_general): # Works for both board
+		if self.actual_board[x][y] == "B":
+			self.player_lost()
+			return
+
 		# Check revealed
-		# if self.display_board[x][y] == "R" and self.actual_board[x][y] != 0:
 		if self.display_board[x][y] == "R":
 			# Only reveal around if this is a non-zero cell
 			if self.actual_board[x][y] != 0 and self.actual_board[x][y] != "B":
@@ -177,16 +180,7 @@ class MineSweeper:
 
 		self.__update_display_board()
 
-		# #debug session
-		# if board_in_general == self.actual_board:
-		# 	print("Picking from Actual Board")
-		# elif board_in_general == self.display_board:
-		# 	print("Picking from Display Board")	
-		# try:
-		# 	board_in_general[x][y]
-		# 	print(f"pick at [{x}][{y}]\n")
-		# except IndexError as e:
-		# 	print(f"IndexErr(pick:): [{x}][{y}] is out of range\n")
+
 
 	def __flood_reveal(self, x, y): # Recursive function
 		print("Flood reveal entered")
@@ -197,16 +191,8 @@ class MineSweeper:
 
 		if self.actual_board[x][y] != 0: # Stop if not 0
 			return
-		# Check neighbors -> 2 ways
 
 		# OPTION 1
-		# Explicitly listing all 4 cells
-		# directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-		# for dx, dy in directions:
-		# 	new_x = x + dx
-		# 	new_y = y + dy
-
-		# OPTION 2
 		# Loop through all 9 cells
 		for i in [-1, 0, 1]:
 			for j in [-1, 0, 1]:
@@ -310,15 +296,23 @@ class MineSweeper:
 
 					if (0 <= new_x < self.height) and (0 <= new_y < self.width):
 						if self.display_board[new_x][new_y] == "H":
+							# if self.actual_board[new_x][new_y] == "B" and self.actual_board[new_x][new_y] == "F":
+							# 	continue # Skip correctly flagged cells
 							self.pick(new_x, new_y, self.display_board) # Only pick if hidden
 
+	def player_lost(self):
+		tk.messagebox.showinfo("Player Lost", "Bomb activated! Game Over.")
+		for i in range(self.height):
+			for j in range(self.width):
+				if self.actual_board[i][j] == "B":
+					self.display_board[i][j] = "R"
+		self.__update_display_board()
 
 if __name__ == "__main__":
 	root = tk.Tk()
 	MineSweeper(root, 16, 16, 36)
 
 # TODO:
-# - Win/Lose detection
 # - Timer
 # - Better GUI design?
 # - Editable board size and bomb count

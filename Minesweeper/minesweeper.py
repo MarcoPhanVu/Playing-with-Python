@@ -22,8 +22,12 @@ class MineSweeper:
 		"#0D2463",	#8
 		"#222E50"	#Bomb
 	]
+	def __init__(self, root: Tk, board: dict):
+		self.height = len(board)
+		self.width = len(board[0])
+		pass
 
-	def __init__(self, root, width = 8, height = 8, bombs = 5):
+	def __init__(self, root: Tk, width = 8, height = 8, bombs = 5):
 		self.width = width
 		self.height = height
 		self.bombs = bombs

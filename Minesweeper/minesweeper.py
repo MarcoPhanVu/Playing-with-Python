@@ -29,7 +29,7 @@ class MineSweeper:
 
 	# Generate GUI
 
-	def __init__(self, root: tk.Tk, actual_board: list):
+	def __init__(self, root: tk.Tk, actual_board: list) -> None:
 		self.height = len(actual_board)
 		self.width = len(actual_board[0])
 
@@ -54,15 +54,17 @@ class MineSweeper:
 		# Main UI
 		self.main_UI = tk.Frame(self.root, bg= "#30343F")
 		self.main_UI.pack(fill = "both", expand = True)
-		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
-		
+
+		self.load_stats()
+
+		self.main_UI.columnconfigure(1, weight = 3, minsize = 200) # column 1 have 3 units of space
 		self.display_board_frame = tk.Frame(self.main_UI, bg = "#95EA63")
-		self.display_board_frame.grid(row = 0, column = 0, padx = 24, pady = 36)
+		self.display_board_frame.grid(row = 0, column = 1, padx = 24, pady = 36)
 		
 		# Actual Board Display for debugging
-		self.main_UI.columnconfigure(1, weight = 1, minsize = 200)
+		self.main_UI.columnconfigure(2, weight = 3, minsize = 200)
 		self.actual_board_frame = tk.Frame(self.main_UI, bg = "#89023E")
-		self.actual_board_frame.grid(row = 0, column = 1, padx = 24, pady = 36)
+		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
 
 		# Menu for debugging
 		self.debug_menu = tk.Frame(self.root, bg ="#FFD9DA")
@@ -190,7 +192,7 @@ class MineSweeper:
 
 
 	def __flood_reveal(self, x, y): # Recursive function
-		print("Flood reveal entered")
+		# print("Flood reveal entered")
 		if self.display_board[x][y] == "R" or self.actual_board[x][y] == "B": # Skip if revealed
 			return
 
@@ -214,12 +216,23 @@ class MineSweeper:
 					if self.display_board[new_x][new_y] != "R" and self.actual_board != "B": # MAJOR CHANGE! Flood reveal calls itself, not pick()
 						self.__flood_reveal(new_x, new_y)
 
+	def load_stats(self) -> None:
+		print("Load stats called")
+		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
+		self.stats_panel = tk.Frame(self.main_UI, bg = "#63A0EA")
+		self.stats_panel.configure(width = 600, height = 800)
+		# simple method of checking existed
+		# tk.Label(self.stats_panel, text = "Stats Panel").pack()
+		# self.stats_panel.grid_propagate(False)
+		self.stats_panel.grid(row = 0, column = 0, padx = 24, pady = 36)
+
 	def __update_display_board(self):
 		for i in range(self.height):
 			for j in range(self.width):
 				cell_color = self.UntouchedColor
 				font_color = cell_color
 				updated_text = " "
+				relief = tk.RAISED
 
 				display_state = self.display_board[i][j]
 				actual_value = self.actual_board[i][j]
@@ -229,6 +242,9 @@ class MineSweeper:
 				if display_state == "R":
 					cell_color = self.numberedCellColor[actual_value]
 					updated_text = self.actual_board[i][j]
+					# relief = tk.SUNKEN
+					if self.actual_board[i][j] == 0:
+						relief = tk.FLAT
 
 				if display_state == "F":
 					cell_color = self.FlaggedCellColor
@@ -237,7 +253,8 @@ class MineSweeper:
 				# 	font_color = cell_color
 					
 				cells = self.display_cells[i][j]
-				cells.config(text = updated_text, fg = font_color, bg = cell_color)
+				cells.config(text = updated_text, fg = font_color, bg = cell_color, relief = relief)
+				# cells.config(text = updated_text, fg = font_color, bg = cell_color)
 
 
 	def __generate_cell_num(self):

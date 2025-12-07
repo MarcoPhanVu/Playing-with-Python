@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import *
 
 class Configurator:
-    def __init__(self):
+    def __init__(self, root: tk.TK):
         pass
     
     def load_settings(self, path: str):
@@ -89,13 +89,6 @@ cars_JSON = {
         }
     }
 }
-
-for count, line in enumerate(file):
-    if(count == 20):
-        break
-    name = line.split(": ")[0]
-    score = line.split(": ")[1][:-2]
-    highscores_JSON[name] = score
 
 print(f"len: {len(highscores_JSON)}")
 print(highscores_JSON)

@@ -15,7 +15,7 @@ class MineSweeper:
 		"#BFD7EA", #0
 		"#93B2AE",	#1
 		"#77A1B1",	#2
-		"#4E8682",	#3
+		"#4E8682",	#3 
 		"#4C7287",	#4
 		"#33795B",	#5
 		"#5C709A",	#6
@@ -23,19 +23,27 @@ class MineSweeper:
 		"#0D2463",	#8
 		"#222E50"	#Bomb
 	]
-	def __init__(self, root: tk.Tk, board: dict):
-		self.height = len(board)
-		self.width = len(board[0])
-		pass
+
+	actual_board = []
+	display_board = []
+
+	# Generate GUI
+
+	def __init__(self, root: tk.Tk, actual_board: list):
+		self.height = len(actual_board)
+		self.width = len(actual_board[0])
+
+		self.setup_UI(root)
+		
 
 	def __init__(self, root: Tk, width = 8, height = 8, bombs = 5):
 		self.width = width
 		self.height = height
 		self.bombs = bombs
-		self.actual_board = []
-		self.display_board = []
 
-		# Generate GUI
+		self.setup_UI(root)
+
+	def setup_UI(self, root: tk.Tk) -> None:
 		self.root = root
 		self.root.geometry("1920x1080")
 		self.root.title("Minesweeper")
@@ -67,7 +75,7 @@ class MineSweeper:
 		self.actual_cells = []
 
 		# Values: [H] for hidden, [R] for revealed, [F] for flagged
-		self.display_board = [[self.emptyCellSign for cell in range(width)] for cell in range(height)]
+		self.display_board = [[self.emptyCellSign for cell in range(self.width)] for cell in range(self.height)]
 
 		# Values: [0-9] for amount of bombs around it and [B] is for bomb 
 		self.__generate_actual_board(self.width, self.height, self.bombs)
@@ -116,7 +124,7 @@ class MineSweeper:
 
 		self.root.mainloop()
 
-	def __generate_actual_board(self, width = 8, height = 8, bombs = 5):
+	def __generate_actual_board(self, width = 8, height = 8, bombs = 5) -> None:
 		board = []
 		bomb_locs = self.__generate_bombs(width, height, bombs)
 
@@ -131,7 +139,8 @@ class MineSweeper:
 
 		self.__generate_cell_num()
 
-	def __generate_bombs(self, width, height, bombs): # private function(only functions inside Minesweeper Class can call and use this)
+	def __generate_bombs(self, width, height, bombs) -> list: # private function(only functions inside Minesweeper Class can call and use this)
+		# return 2D array of bomb locations
 		#randomize bomb locs 1D array
 		bomb_loc_1D = []
 		temp = 0
@@ -141,8 +150,6 @@ class MineSweeper:
 				bomb_loc_1D.append(temp)
 			temp = random.randint(0, width * height)
 
-		# bomb_loc_1D = [3, 18, 8, 55, 12] 
-
 		# convert to 2D
 		bomb_loc_2D = []
 		for loc in bomb_loc_1D:
@@ -151,7 +158,7 @@ class MineSweeper:
 
 		return bomb_loc_2D
 
-	def pick(self, x, y, board_in_general): # Works for both board
+	def pick(self, x, y, board_in_general) -> None:
 		if self.actual_board[x][y] == "B":
 			self.player_lost()
 			return
@@ -307,6 +314,9 @@ class MineSweeper:
 				if self.actual_board[i][j] == "B":
 					self.display_board[i][j] = "R"
 		self.__update_display_board()
+
+	def player_won(self):
+		tk.messagebox.showinfo("Player Won", "Congratulations! You have won the game!")
 
 if __name__ == "__main__":
 	root = tk.Tk()

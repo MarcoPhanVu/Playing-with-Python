@@ -1,6 +1,5 @@
 import random
 
-# def party(n: int):
 NUM_SIM = 10000
 
 
@@ -51,6 +50,8 @@ def gamblers_expected_time(k: int, M: int, p: float, NUM_SIM: int) -> int:
 	avg = int (sum(total_trials)/len(total_trials))
 	return avg
 
+
+# S scucesses in a row before F failures in a row
 def run_of_success(p: float, S: int, F: int, NUM_SIM: int) -> float:
 	prob = [p, 1 - p]
 	choices = [1, 0]
@@ -115,7 +116,7 @@ def bus_rider_ship(nth_stop: int, NUM_SIM):
 if __name__ == "__main__":
 	print(f"Task 1 Different Integers: {sim_diff_integers(20, 4, NUM_SIM)}")
 	print(f"Task 2 Gambler's Ruin: {gamblers_expected_time(10, 200, 0.8, 7000)} times")
-	print(f"Task 3 - Run of Success: {run_of_success(0.7, 10, 5, NUM_SIM)}")
+	print(f"Task 3 - Run of Success: {run_of_success(0.6, 12, 5, NUM_SIM)}")
 	print(f"Task 4 - Bus Ridership: {bus_rider_ship(10, NUM_SIM)}")
 
 

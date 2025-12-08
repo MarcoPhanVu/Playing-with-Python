@@ -48,22 +48,24 @@ class MineSweeper:
 		self.root.geometry("1920x1080")
 		self.root.title("Minesweeper")
 
+		# Title
 		self.label = tk.Label(self.root, text="Minesweeper", font=("Courier New", 32))
 		self.label.pack()
 
-		# Main UI
-		self.main_UI = tk.Frame(self.root, bg= "#30343F")
-		self.main_UI.pack(fill = "both", expand = True)
+		# Main Body
+		self.main_body = tk.Frame(self.root, bg= "#30343F")
+		self.main_body.pack(fill = "both", expand = True)
 
 		self.load_stats()
 
-		self.main_UI.columnconfigure(1, weight = 3, minsize = 200) # column 1 have 3 units of space
-		self.display_board_frame = tk.Frame(self.main_UI, bg = "#95EA63")
+		# Display Board
+		self.main_body.columnconfigure(1, weight = 3, minsize = 200) # column 1 have 3 units of space
+		self.display_board_frame = tk.Frame(self.main_body, bg = "#95EA63")
 		self.display_board_frame.grid(row = 0, column = 1, padx = 24, pady = 36)
 		
 		# Actual Board Display for debugging
-		self.main_UI.columnconfigure(2, weight = 3, minsize = 200)
-		self.actual_board_frame = tk.Frame(self.main_UI, bg = "#89023E")
+		self.main_body.columnconfigure(2, weight = 3, minsize = 200)
+		self.actual_board_frame = tk.Frame(self.main_body, bg = "#89023E")
 		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
 
 		# Menu for debugging
@@ -218,8 +220,8 @@ class MineSweeper:
 
 	def load_stats(self) -> None:
 		print("Load stats called")
-		self.main_UI.columnconfigure(0, weight = 1, minsize = 200)
-		self.stats_panel = tk.Frame(self.main_UI, bg = "#63A0EA")
+		self.main_body.columnconfigure(0, weight = 1, minsize = 200)
+		self.stats_panel = tk.Frame(self.main_body, bg = "#63A0EA")
 		self.stats_panel.configure(width = 600, height = 800)
 		# simple method of checking existed
 		# tk.Label(self.stats_panel, text = "Stats Panel").pack()

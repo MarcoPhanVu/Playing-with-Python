@@ -24,11 +24,14 @@ class MineSweeper:
 		"#222E50"	#Bomb
 	]
 
+	cell_flagged_count = 0
+	cell_revealed_count = 0
+	total_cells = 0
+
 	actual_board = []
 	display_board = []
 
 	# Generate GUI
-
 	def __init__(self, root: tk.Tk, actual_board: list) -> None:
 		self.height = len(actual_board)
 		self.width = len(actual_board[0])
@@ -40,6 +43,11 @@ class MineSweeper:
 		self.width = width
 		self.height = height
 		self.bombs = bombs
+
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
+		self.total_cells = 0
+		self.total_cells = self.width * self.height
 
 		self.setup_UI(root)
 
@@ -69,7 +77,7 @@ class MineSweeper:
 		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
 
 		# Menu for debugging
-		self.debug_menu = tk.Frame(self.root, bg ="#FFD9DA")
+		self.debug_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
 		self.debug_menu.pack(fill = "both", expand = True)
 
 
@@ -101,7 +109,7 @@ class MineSweeper:
 											width = 3,
 											font = self.fontDefault,
 											command = lambda i = i, j = j: 
-											self.pick(i, j, self.display_board))
+											self.pick(i, j))
 				display_cell.bind("<Button-3>", self.__cell_flagged_toggle)
 				display_cell.row_pos = i # ROW traverse (height)
 				display_cell.col_pos = j # COL traverse (width)
@@ -114,7 +122,7 @@ class MineSweeper:
 											width = 3,
 											font = self.fontDefault,
 											command = lambda i = i, j = j: 
-											self.pick(i, j, self.actual_board))
+											self.pick(i, j))
 				actual_cell.bind("<Button-3>", self.__cell_flagged_toggle)
 				actual_cell.row_pos = i # same with display
 				actual_cell.col_pos = j # same with display
@@ -162,12 +170,12 @@ class MineSweeper:
 
 		return bomb_loc_2D
 
-	def pick(self, x, y, board_in_general) -> None:
+	def pick(self, x, y) -> None:
 		if self.actual_board[x][y] == "B":
 			self.player_lost()
 			return
 
-		# Check revealed
+		# Check revealed + reveal around
 		if self.display_board[x][y] == "R":
 			# Only reveal around if this is a non-zero cell
 			if self.actual_board[x][y] != 0 and self.actual_board[x][y] != "B":
@@ -188,10 +196,11 @@ class MineSweeper:
 			# pass
 
 		self.display_board[x][y] = "R" # reveal current cell
+		self.cell_revealed_count += 1
 
+
+		self.__update_labels()
 		self.__update_display_board()
-
-
 
 	def __flood_reveal(self, x, y): # Recursive function
 		# print("Flood reveal entered")
@@ -219,16 +228,40 @@ class MineSweeper:
 						self.__flood_reveal(new_x, new_y)
 
 	def load_stats(self) -> None:
-		print("Load stats called")
 		self.main_body.columnconfigure(0, weight = 1, minsize = 200)
 		self.stats_panel = tk.Frame(self.main_body, bg = "#63A0EA")
 		self.stats_panel.configure(width = 600, height = 800)
+
 		# simple method of checking existed
 		# tk.Label(self.stats_panel, text = "Stats Panel").pack()
 		# self.stats_panel.grid_propagate(False)
+
 		self.stats_panel.grid(row = 0, column = 0, padx = 24, pady = 36)
 
+		self.bombs_count_label = tk.Label(
+			self.stats_panel, 
+			text = f"Bombs: {self.cell_flagged_count}/{self.bombs}", 
+			font = self.fontDefault, 
+			bg = "#20C03B"
+			)
+
+		self.cell_count_label = tk.Label(
+			self.stats_panel, 
+			text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells}", 
+			font = self.fontDefault, 
+			bg = "#0A0050"
+			)
+
+		self.bombs_count_label.pack(pady = 12)
+		self.cell_count_label.pack(pady = 12)
+
+	def __update_labels(self):
+		# Stats update
+		self.bombs_count_label.config(text = f"Bombs: {self.cell_flagged_count}/{self.bombs}")
+		self.cell_count_label.config(text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells}")
+
 	def __update_display_board(self):
+		# Cells config update
 		for i in range(self.height):
 			for j in range(self.width):
 				cell_color = self.UntouchedColor
@@ -284,13 +317,17 @@ class MineSweeper:
 		if self.display_board[y][x] == "R": # Do not flag revealed cells
 			return
 		
-		if self.display_board[y][x] == "F": # Do not flag flagged cells
+		if self.display_board[y][x] == "F": # Unflag flagged cells
 			cell.configure(bg = self.UntouchedColor, text = self.UntouchedColor)
 			self.display_board[y][x] = "H"
+			self.cell_flagged_count -= 1
 			return
 		 
 		self.display_board[y][x] = "F"
-		cell.configure(bg = self.FlaggedCellColor, text = "")
+		self.cell_flagged_count += 1
+		cell.configure(bg = self.FlaggedCellColor)
+		self.__update_labels()
+		self.__update_display_board()
 
 	def __cell_reveal_around(self, x, y):
 		bombs_around = self.actual_board[x][y]
@@ -324,7 +361,7 @@ class MineSweeper:
 						if self.display_board[new_x][new_y] == "H":
 							# if self.actual_board[new_x][new_y] == "B" and self.actual_board[new_x][new_y] == "F":
 							# 	continue # Skip correctly flagged cells
-							self.pick(new_x, new_y, self.display_board) # Only pick if hidden
+							self.pick(new_x, new_y) # Only pick if hidden
 
 	def player_lost(self):
 		tk.messagebox.showinfo("Player Lost", "Bomb activated! Game Over.")
@@ -339,7 +376,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 16, 16, 36)
+	MineSweeper(root, 8, 8, 12)
 
 # TODO:
 # - Timer

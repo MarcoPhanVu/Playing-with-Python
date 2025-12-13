@@ -50,10 +50,11 @@ class MineSweeper:
 		self.total_cells = self.width * self.height
 
 		self.setup_UI(root)
+		self.load_board(None, None)
 
 	def setup_UI(self, root: tk.Tk) -> None:
 		self.root = root
-		self.root.geometry("1920x1080")
+		self.root.geometry("1280x720")
 		self.root.title("Minesweeper")
 
 		# Title
@@ -64,6 +65,7 @@ class MineSweeper:
 		self.main_body = tk.Frame(self.root, bg= "#30343F")
 		self.main_body.pack(fill = "both", expand = True)
 
+		# Stats Panel
 		self.load_stats()
 
 		# Display Board
@@ -77,20 +79,36 @@ class MineSweeper:
 		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
 
 		# Menu for debugging
-		self.debug_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
-		self.debug_menu.pack(fill = "both", expand = True)
+		self.actions_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
+		self.actions_menu.pack(fill = "both", expand = True)
 
+		# load from saved board
+		# Save board
+		# Toggle actual board
+		
+	def __save_board(self) -> None:
+		pass
+
+	def __toggle_actual_board(self) -> None:
+		pass
+
+	def load_board(self, actual_board, display_board) -> None:
+		print(f"actual_board state: {actual_board}")
+
+		if actual_board != None and display_board != None:
+			print("load existing board")
+
+		else:
+			# Values: [H] for hidden, [R] for revealed, [F] for flagged
+			self.display_board = [[self.emptyCellSign for cell in range(self.width)] for cell in range(self.height)]
+
+			# Values: [0-9] for amount of bombs around it and [B] is for bomb 
+			self.__generate_actual_board(self.width, self.height, self.bombs)
 
 		# Generate Boards
 			# Reference to cells
 		self.display_cells = []
 		self.actual_cells = []
-
-		# Values: [H] for hidden, [R] for revealed, [F] for flagged
-		self.display_board = [[self.emptyCellSign for cell in range(self.width)] for cell in range(self.height)]
-
-		# Values: [0-9] for amount of bombs around it and [B] is for bomb 
-		self.__generate_actual_board(self.width, self.height, self.bombs)
 
 		# Visualize Boards for display and actual
 		for i in range(self.height):
@@ -362,7 +380,6 @@ class MineSweeper:
 							# if self.actual_board[new_x][new_y] == "B" and self.actual_board[new_x][new_y] == "F":
 							# 	continue # Skip correctly flagged cells
 							self.pick(new_x, new_y) # Only pick if hidden
-
 	def player_lost(self):
 		tk.messagebox.showinfo("Player Lost", "Bomb activated! Game Over.")
 		for i in range(self.height):
@@ -376,7 +393,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 8, 8, 12)
+	MineSweeper(root, 12, 12, 12)
 
 # TODO:
 # - Timer

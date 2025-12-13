@@ -55,6 +55,7 @@ class MineSweeper:
 
 		self.setup_UI(root)
 		self.load_board(None, None)
+		self.root.mainloop()
 
 	def setup_UI(self, root: tk.Tk) -> None:
 		self.root = root
@@ -82,12 +83,35 @@ class MineSweeper:
 		self.actual_board_frame = tk.Frame(self.main_body, bg = "#89023E")
 		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
 
-		# Menu for debugging
+		# Menu for actions
 		self.actions_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
 		self.actions_menu.pack(fill = "both", expand = True)
 
-		# load from saved board
-		# Save board
+		self.actions_menu.columnconfigure(3, weight = 1)
+		self.save_board_button = tk.Button(	
+							self.actions_menu,
+							text = "Save Board",
+							command= self.__save_board)
+
+		self.new_game_button = tk.Button(	
+							self.actions_menu,
+							text = "New Game",
+							command= self.__new_game)
+
+		# self.open_from_file_button = tk.Button(	
+		# 					self.actions_menu,
+		# 					text = "Open From File",
+		# 					command= self.__open_from_file)
+
+		self.toggle_actual_board_button = tk.Button(	
+							self.actions_menu,
+							text = "Toggle Actual Board",
+							command= self.__toggle_actual_board)
+
+		self.save_board_button.grid(row = 0, column = 0, sticky = "NSEW")
+		self.new_game_button.grid(row = 0, column = 1, sticky = "NSEW")
+		self.toggle_actual_board_button.grid(row = 0, column = 2, sticky = "NSEW")
+
 		# Toggle actual board
 		
 	def __save_board(self) -> None:
@@ -110,15 +134,22 @@ class MineSweeper:
 			file.close()
 
 	def __toggle_actual_board(self) -> None:
+		self.actual_board_frame.forget()
+		print("forget actual board")
 		pass
 
-	def load_board(self, actual_board, display_board) -> None:
-		print(f"actual_board state: {actual_board}")
+	def __new_game(self) -> None:
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
+		self.total_cells = 0
 
+		self.load_board(None, None)
+
+	def load_board(self, actual_board, display_board) -> None:
 		if actual_board != None and display_board != None:
 			print("load existing board")
-
 		else:
+			print("new board")
 			# Values: [H] for hidden, [R] for revealed, [F] for flagged
 			self.display_board = [[self.emptyCellSign for cell in range(self.width)] for cell in range(self.height)]
 
@@ -142,12 +173,13 @@ class MineSweeper:
 				self.display_board_frame.columnconfigure(j, weight = 1)
 				self.actual_board_frame.columnconfigure(j, weight = 1)
 
-				display_cell = tk.Button(	self.display_board_frame,
-											text = " ",
-											width = 3,
-											font = self.fontDefault,
-											command = lambda i = i, j = j: 
-											self.pick(i, j))
+				display_cell = tk.Button(
+									self.display_board_frame,
+									text = " ",
+									width = 3,
+									font = self.fontDefault,
+									command = lambda i = i, j = j: 
+									self.pick(i, j))
 				display_cell.bind("<Button-3>", self.__cell_flagged_toggle)
 				display_cell.row_pos = i # ROW traverse (height)
 				display_cell.col_pos = j # COL traverse (width)
@@ -155,12 +187,13 @@ class MineSweeper:
 				# , padx = 1, pady = 1)
 				self.display_rows.append(display_cell)
 
-				actual_cell = tk.Button(	self.actual_board_frame,
-											text = f"{self.actual_board[i][j]}",
-											width = 3,
-											font = self.fontDefault,
-											command = lambda i = i, j = j: 
-											self.pick(i, j))
+				actual_cell = tk.Button(
+									self.actual_board_frame,
+									text = f"{self.actual_board[i][j]}",
+									width = 3,
+									font = self.fontDefault,
+									command = lambda i = i, j = j: 
+									self.pick(i, j))
 				actual_cell.bind("<Button-3>", self.__cell_flagged_toggle)
 				actual_cell.row_pos = i # same with display
 				actual_cell.col_pos = j # same with display
@@ -172,9 +205,8 @@ class MineSweeper:
 			self.display_cells.append(self.display_rows)
 			self.actual_cells.append(self.actual_rows)
 
-		self.__save_board()
+		# self.__save_board()
 
-		self.root.mainloop()
 
 	def __generate_actual_board(self, width = 8, height = 8, bombs = 5) -> None:
 		board = []
@@ -237,7 +269,6 @@ class MineSweeper:
 
 		self.display_board[x][y] = "R" # reveal current cell
 		self.cell_revealed_count += 1
-
 
 		self.__update_labels()
 		self.__update_display_board()

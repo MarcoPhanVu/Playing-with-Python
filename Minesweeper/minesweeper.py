@@ -7,6 +7,8 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
+from tkinter import simpledialog
+from tkinter import filedialog
 # Define what will cell behave when rightclick
 
 class MineSweeper:
@@ -51,7 +53,7 @@ class MineSweeper:
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
 		self.setup_UI(root)
-		self.load_board(None, None)
+		self.generate_board(None, None)
 		self.root.mainloop()
 
 	def setup_UI(self, root: tk.Tk) -> None:
@@ -86,7 +88,7 @@ class MineSweeper:
 		self.actions_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
 		self.actions_menu.pack(fill = "both", expand = True)
 
-		self.actions_menu.columnconfigure(3, weight = 1)
+		self.actions_menu.columnconfigure(4, weight = 1)
 		self.save_board_button = tk.Button(	
 							self.actions_menu,
 							text = "Save Board",
@@ -97,10 +99,10 @@ class MineSweeper:
 							text = "New Game",
 							command= self.__new_game)
 
-		# self.open_from_file_button = tk.Button(	
-		# 					self.actions_menu,
-		# 					text = "Open From File",
-		# 					command= self.__open_from_file)
+		self.load_saved_board_button = tk.Button(	
+							self.actions_menu,
+							text = "Open From File",
+							command= self.__load_saved_board)
 
 		self.toggle_actual_board_button = tk.Checkbutton(	
 							self.actions_menu,
@@ -108,31 +110,60 @@ class MineSweeper:
 							# indicatoron=False,
 							command= self.__toggle_actual_board)
 
-		self.save_board_button.grid(row = 0, column = 0, sticky = "NSEW")
-		self.new_game_button.grid(row = 0, column = 1, sticky = "NSEW")
-		self.toggle_actual_board_button.grid(row = 0, column = 2, sticky = "NSEW")
+		self.save_board_button.grid(row = 0, column = 0)
+		self.new_game_button.grid(row = 0, column = 1)
+		self.load_saved_board_button.grid(row = 0, column = 2)
+		self.toggle_actual_board_button.grid(row = 0, column = 3)
 
 		# Toggle actual board
 		
 	def __save_board(self) -> None:
-		filepath_P = Path("./data/saved_board")
+		filename = simpledialog.askstring(
+			title = "Input", 
+			prompt = "Enter save name(no extension):" \
+			"", parent=self.root)
+
+		if not filename: # user cancelled or empty
+			return
+		
+		filename += ".json"
+
+		location_path = Path("./saved_boards/")
+		final_path = location_path / filename
 
 		actual_2D_Arr = self.actual_board
 		display_2D_Arr = self.display_board
-
 		board_data = {
 			"actual_board": actual_2D_Arr,
 			"display_board": display_2D_Arr
 		}
 
-		location_path = "./data/saved_boards/"
-		file_name = "saved_board_1.json"
-		final_loc = location_path + file_name
-		print(f"finalLoc = {final_loc}")
-		with open(f"{location_path}{file_name}", "w") as file:
+		with open(f"{final_path}", "w") as file:
 			json.dump(board_data, file, indent = 4)
 			file.close()
+	def __load_saved_board(self) -> None:
+		file_path = filedialog.askopenfilename(
+			initialdir = "./saved_boards/",
+			title = "Select saved board",
+			filetypes = (("JSON files", "*.json"), ("All files", "*.*"))
+		)
 
+		if not file_path: # user cancelled
+			return
+		
+		try:
+			with open(file_path, "r") as file:
+				board_data = json.load(file)
+				file.close()
+
+			self.actual_board = board_data["actual_board"]
+			self.display_board = board_data["display_board"]
+		except Exception as e:
+			tk.messagebox.showerror("Error", f"Failed to load board: {e}")
+			return
+		
+		self.__update_display_board()
+		
 	def __toggle_actual_board(self) -> None:
 		self.actual_board_toggled += 1
 		if self.actual_board_toggled % 2 == 1:
@@ -150,10 +181,10 @@ class MineSweeper:
 		self.cell_flagged_count = 0
 		self.cell_revealed_count = 0
 
-		self.load_board(None, None)
+		self.generate_board(None, None)
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
-	def load_board(self, actual_board, display_board) -> None:
+	def generate_board(self, actual_board, display_board) -> None:
 		if actual_board != None and display_board != None:
 			# Load existed logic
 			print("load existing board")

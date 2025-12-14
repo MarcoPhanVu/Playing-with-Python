@@ -1,9 +1,0 @@
-Vincent: 1000
-JJ: 820
-Ngoc: 800
-Dylan: 720
-Jackson: 600
-Ben: 900
-Park: 800
-Neil: 200
-Tristan: 400

@@ -7,6 +7,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
+from tkinter import simpledialog
 # Define what will cell behave when rightclick
 
 class MineSweeper:
@@ -115,7 +116,17 @@ class MineSweeper:
 		# Toggle actual board
 		
 	def __save_board(self) -> None:
-		filepath_P = Path("./data/saved_board")
+		filename = simpledialog.askstring(
+			title = "Input", 
+			prompt = "Enter save name(no extension):" \
+			"", parent=self.root)
+
+		if not filename: # user cancelled or empty
+			return
+		
+		filename += ".json"
+		location_path = Path("./saved_boards/")
+		final_path = location_path / filename
 
 		actual_2D_Arr = self.actual_board
 		display_2D_Arr = self.display_board
@@ -125,11 +136,10 @@ class MineSweeper:
 			"display_board": display_2D_Arr
 		}
 
-		location_path = "./data/saved_boards/"
-		file_name = "saved_board_1.json"
-		final_loc = location_path + file_name
-		print(f"finalLoc = {final_loc}")
-		with open(f"{location_path}{file_name}", "w") as file:
+		# file_name = "saved_board_1.json"
+		# final_loc = location_path + file_name
+		# print(f"finalLoc = {final_loc}")
+		with open(f"{final_path}", "w") as file:
 			json.dump(board_data, file, indent = 4)
 			file.close()
 

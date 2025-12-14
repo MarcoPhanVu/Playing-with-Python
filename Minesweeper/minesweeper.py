@@ -28,9 +28,13 @@ class MineSweeper:
 		"#222E50"	#Bomb
 	]
 
+	mainThemeColor = "#30343F"
+
 	cell_flagged_count = 0
 	cell_revealed_count = 0
 	total_cells_to_reveal = 0
+
+	actual_board_toggled = 0
 
 	actual_board = []
 	display_board = []
@@ -76,6 +80,7 @@ class MineSweeper:
 		self.main_body.columnconfigure(2, weight = 3, minsize = 200)
 		self.actual_board_frame = tk.Frame(self.main_body, bg = "#89023E")
 		self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
+		self.actual_board_frame.grid_remove() #toggle off
 
 		# Menu for actions
 		self.actions_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
@@ -97,9 +102,10 @@ class MineSweeper:
 		# 					text = "Open From File",
 		# 					command= self.__open_from_file)
 
-		self.toggle_actual_board_button = tk.Button(	
+		self.toggle_actual_board_button = tk.Checkbutton(	
 							self.actions_menu,
 							text = "Toggle Actual Board",
+							# indicatoron=False,
 							command= self.__toggle_actual_board)
 
 		self.save_board_button.grid(row = 0, column = 0, sticky = "NSEW")
@@ -128,14 +134,21 @@ class MineSweeper:
 			file.close()
 
 	def __toggle_actual_board(self) -> None:
-		self.actual_board_frame.forget()
+		self.actual_board_toggled += 1
+		if self.actual_board_toggled % 2 == 1:
+			# self.actual_board_frame.grid(row = 0, column = 2, padx = 24, pady = 36)
+			self.actual_board_frame.grid()
+			print("show actual board")
+			return
+		else:
+			self.actual_board_frame.grid_remove() # == hide
+			# self.actual_board_frame.grid_forget() @ == remove and lost properties
 		print("forget actual board")
 		pass
 
 	def __new_game(self) -> None:
 		self.cell_flagged_count = 0
 		self.cell_revealed_count = 0
-		print("New Game Initialized")
 
 		self.load_board(None, None)
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
@@ -308,7 +321,7 @@ class MineSweeper:
 
 	def load_stats(self) -> None:
 		self.main_body.columnconfigure(0, weight = 1, minsize = 200)
-		self.stats_panel = tk.Frame(self.main_body, bg = "#63A0EA")
+		self.stats_panel = tk.Frame(self.main_body, bg = self.mainThemeColor)
 		self.stats_panel.configure(width = 600, height = 800)
 
 		# simple method of checking existed
@@ -319,16 +332,18 @@ class MineSweeper:
 
 		self.bombs_count_label = tk.Label(
 			self.stats_panel, 
-			text = f"Bombs: {self.cell_flagged_count}/{self.bombs}", 
+			text = f"Bombs flagged: {self.cell_flagged_count}/{self.bombs}", 
 			font = self.fontDefault, 
-			bg = "#20C03B"
+			bg = self.mainThemeColor,
+			fg = "#FFFFFF"
 			)
 
 		self.cell_count_label = tk.Label(
 			self.stats_panel, 
 			text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells_to_reveal}", 
 			font = self.fontDefault, 
-			bg = "#617973"
+			bg = self.mainThemeColor,
+			fg = "#FFFFFF"
 			)
 
 		self.bombs_count_label.pack(pady = 12)

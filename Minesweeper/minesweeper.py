@@ -30,28 +30,21 @@ class MineSweeper:
 
 	cell_flagged_count = 0
 	cell_revealed_count = 0
-	total_cells = 0
+	total_cells_to_reveal = 0
 
 	actual_board = []
 	display_board = []
 
 	# Generate GUI
-	def __init__(self, root: tk.Tk, actual_board: list) -> None:
-		self.height = len(actual_board)
-		self.width = len(actual_board[0])
-
-		self.setup_UI(root)
-		
-
-	def __init__(self, root: Tk, width = 8, height = 8, bombs = 5):
+	def __init__(self, root: Tk, width = 7, height = 7, bombs = 5):
 		self.width = width
 		self.height = height
 		self.bombs = bombs
 
 		self.cell_flagged_count = 0
 		self.cell_revealed_count = 0
-		self.total_cells = 0
-		self.total_cells = self.width * self.height
+
+		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
 		self.setup_UI(root)
 		self.load_board(None, None)
@@ -59,7 +52,8 @@ class MineSweeper:
 
 	def setup_UI(self, root: tk.Tk) -> None:
 		self.root = root
-		self.root.geometry("1280x720")
+		# self.root.geometry("1280x720")
+		# self.root.geometry("1280x720")
 		self.root.title("Minesweeper")
 
 		# Title
@@ -141,12 +135,14 @@ class MineSweeper:
 	def __new_game(self) -> None:
 		self.cell_flagged_count = 0
 		self.cell_revealed_count = 0
-		self.total_cells = 0
+		print("New Game Initialized")
 
 		self.load_board(None, None)
+		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
 	def load_board(self, actual_board, display_board) -> None:
 		if actual_board != None and display_board != None:
+			# Load existed logic
 			print("load existing board")
 		else:
 			print("new board")
@@ -199,7 +195,6 @@ class MineSweeper:
 				actual_cell.col_pos = j # same with display
 				actual_cell.value = self.actual_board[i][j]
 				actual_cell.grid(row = i, column = j, sticky = "NSEW")
-				# , padx = 1, pady = 1)
 				self.actual_rows.append(actual_cell)
 
 			self.display_cells.append(self.display_rows)
@@ -243,6 +238,8 @@ class MineSweeper:
 		return bomb_loc_2D
 
 	def pick(self, x, y) -> None:
+		flooded = False
+
 		if self.actual_board[x][y] == "B":
 			self.player_lost()
 			return
@@ -265,20 +262,31 @@ class MineSweeper:
 		# Flood reveal -> turn this to be a recursive function
 		if self.actual_board[x][y] == 0:
 			self.__flood_reveal(x, y)
-			# pass
+			flooded = True
+
+		if flooded != True:
+			self.cell_revealed_count += 1
 
 		self.display_board[x][y] = "R" # reveal current cell
-		self.cell_revealed_count += 1
+		print(f"reveal from pick: {self.cell_revealed_count} at [{x}][{y}]")
+		print(f"Cells revealed: {self.cell_revealed_count}/{self.total_cells_to_reveal}")
 
 		self.__update_labels()
 		self.__update_display_board()
+
+		if self.cell_revealed_count == self.total_cells_to_reveal:
+			self.player_won()
+
 
 	def __flood_reveal(self, x, y): # Recursive function
 		# print("Flood reveal entered")
 		if self.display_board[x][y] == "R" or self.actual_board[x][y] == "B": # Skip if revealed
 			return
+		
+		self.display_board[x][y] = "R" # do not use "pick()" here to avoid infinite recursion
+		self.cell_revealed_count += 1
+		print(f"reveal from flood: {self.cell_revealed_count} at [{x}][{y}]")
 
-		self.display_board[x][y] = "R"
 
 		if self.actual_board[x][y] != 0: # Stop if not 0
 			return
@@ -318,9 +326,9 @@ class MineSweeper:
 
 		self.cell_count_label = tk.Label(
 			self.stats_panel, 
-			text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells}", 
+			text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells_to_reveal}", 
 			font = self.fontDefault, 
-			bg = "#0A0050"
+			bg = "#617973"
 			)
 
 		self.bombs_count_label.pack(pady = 12)
@@ -329,7 +337,7 @@ class MineSweeper:
 	def __update_labels(self):
 		# Stats update
 		self.bombs_count_label.config(text = f"Bombs: {self.cell_flagged_count}/{self.bombs}")
-		self.cell_count_label.config(text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells}")
+		self.cell_count_label.config(text = f"Cells Revealed: {self.cell_revealed_count}/{self.total_cells_to_reveal}")
 
 	def __update_display_board(self):
 		# Cells config update
@@ -403,6 +411,8 @@ class MineSweeper:
 	def __cell_reveal_around(self, x, y):
 		bombs_around = self.actual_board[x][y]
 		flag_counts = 0
+
+		# Check and count flags around
 		for i in [-1, 0, 1]:
 			for j in [-1, 0, 1]:
 				new_x = x + i
@@ -412,7 +422,7 @@ class MineSweeper:
 					if self.display_board[new_x][new_y] == "R": # Skip if revealed
 						continue
 
-					if self.display_board[new_x][new_y] == "F":
+					if self.display_board[new_x][new_y] == "F": # Count flags
 						flag_counts += 1
 						if flag_counts > bombs_around:
 							print("Too many flags")
@@ -446,12 +456,11 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 12, 12, 12)
+	MineSweeper(root, 10, 10, 10)
 
 # TODO:
 # - Timer
 # - Better GUI design?
 # - Editable board size and bomb count
-# - Click on numbered cell to reveal surrounding cells if correct number of flags placed
 # - High score tracking -> save in a file?
 # - scrollable board for large sizes

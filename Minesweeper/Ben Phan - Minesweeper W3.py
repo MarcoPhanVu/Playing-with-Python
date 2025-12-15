@@ -47,7 +47,8 @@ class MineSweeper:
 		self.height = height
 		self.bombs = bombs
 
-		self.__reset_counter()
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
 
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
@@ -140,7 +141,6 @@ class MineSweeper:
 		with open(f"{final_path}", "w") as file:
 			json.dump(board_data, file, indent = 4)
 			file.close()
-			
 	def __load_saved_board(self) -> None:
 		file_path = filedialog.askopenfilename(
 			initialdir = "./saved_boards/",
@@ -161,16 +161,7 @@ class MineSweeper:
 		except Exception as e:
 			tk.messagebox.showerror("Error", f"Failed to load board: {e}")
 			return
-
-		self.__reset_counter()
-		for i in range(self.height):
-				for j in range(self.width):
-					if self.display_board[i][j] == "F":
-						self.cell_flagged_count += 1
-					if self.display_board[i][j] == "R":
-						self.cell_revealed_count += 1
-
-		self.__update_labels()
+		
 		self.__update_display_board()
 		
 	def __toggle_actual_board(self) -> None:
@@ -187,14 +178,11 @@ class MineSweeper:
 		pass
 
 	def __new_game(self) -> None:
-		self.__reset_counter()
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
 
 		self.generate_board(None, None)
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
-
-	def __reset_counter(self) -> None:
-		self.cell_flagged_count = 0
-		self.cell_revealed_count = 0
 
 	def generate_board(self, actual_board, display_board) -> None:
 		if actual_board != None and display_board != None:
@@ -514,7 +502,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 24, 24, 36)
+	MineSweeper(root, 10, 10, 10)
 
 # TODO:
 # - Timer

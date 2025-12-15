@@ -6,7 +6,6 @@ import pathlib
 from pathlib import Path
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import filedialog
@@ -42,15 +41,14 @@ class MineSweeper:
 	actual_board = []
 	display_board = []
 
-	difficulties = ["Easy", "Medium", "Hard", "Custom"]
-
 	# Generate GUI
 	def __init__(self, root: Tk, width = 7, height = 7, bombs = 5):
 		self.width = width
 		self.height = height
 		self.bombs = bombs
 
-		self.__reset_counter()
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
 
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
 
@@ -90,9 +88,7 @@ class MineSweeper:
 		self.actions_menu = tk.Frame(self.root, bg ="#FFD9DA", height = 360)
 		self.actions_menu.pack(fill = "both", expand = True)
 
-		for col in range(5):
-			self.actions_menu.columnconfigure(col, weight = 1)
-
+		self.actions_menu.columnconfigure(4, weight = 1)
 		self.save_board_button = tk.Button(	
 							self.actions_menu,
 							text = "Save Board",
@@ -102,19 +98,6 @@ class MineSweeper:
 							self.actions_menu,
 							text = "New Game",
 							command= self.__new_game)
-		
-		# difficulty dropdown
-		self.diffculty_var = tk.StringVar(value = "Easy")
-		self.difficulty_droplist = ttk.Combobox(
-							self.actions_menu,
-							textvariable = self.diffculty_var,
-							values = self.difficulties,
-							state = "readonly",
-							width = 15)
-		self.difficulty_droplist.bind(
-							"<<ComboboxSelected>>", 
-							lambda event: self.__difficulty_settings(self.diffculty_var.get())
-							)
 
 		self.load_saved_board_button = tk.Button(	
 							self.actions_menu,
@@ -127,21 +110,12 @@ class MineSweeper:
 							# indicatoron=False,
 							command= self.__toggle_actual_board)
 
-		self.save_board_button.grid(row = 0, 
-							column = 0)
+		self.save_board_button.grid(row = 0, column = 0)
+		self.new_game_button.grid(row = 0, column = 1)
+		self.load_saved_board_button.grid(row = 0, column = 2)
+		self.toggle_actual_board_button.grid(row = 0, column = 3)
 
-		self.new_game_button.grid(row = 0, 
-							column = 1)
-
-		self.difficulty_droplist.grid(row = 0, 
-							column = 2)
-
-		self.load_saved_board_button.grid(row = 0, 
-							column = 3)
-
-		self.toggle_actual_board_button.grid(row = 0, 
-							column = 4)
-
+		# Toggle actual board
 		
 	def __save_board(self) -> None:
 		filename = simpledialog.askstring(
@@ -167,7 +141,6 @@ class MineSweeper:
 		with open(f"{final_path}", "w") as file:
 			json.dump(board_data, file, indent = 4)
 			file.close()
-			
 	def __load_saved_board(self) -> None:
 		file_path = filedialog.askopenfilename(
 			initialdir = "./saved_boards/",
@@ -188,48 +161,9 @@ class MineSweeper:
 		except Exception as e:
 			tk.messagebox.showerror("Error", f"Failed to load board: {e}")
 			return
-
-		self.__reset_counter()
-		for i in range(self.height):
-				for j in range(self.width):
-					if self.display_board[i][j] == "F":
-						self.cell_flagged_count += 1
-					if self.display_board[i][j] == "R":
-						self.cell_revealed_count += 1
-
-		self.__update_labels()
+		
 		self.__update_display_board()
 		
-	def __difficulty_settings(self, value) -> None:
-		print(f"Difficulty changed to: {value}")
-		if value == "Easy":
-			self.width = 8
-			self.height = 8
-			self.bombs = 10
-		elif value == "Medium":
-			self.width = 16
-			self.height = 16
-			self.bombs = 40
-		elif value == "Hard":
-			self.width = 24
-			self.height = 24
-			self.bombs = 99
-		elif value == "Custom":
-			# Prompt user for custom settings
-			custom_width = simpledialog.askinteger("Custom Width", "Enter board width:", minvalue=5, maxvalue=50)
-			custom_height = simpledialog.askinteger("Custom Height", "Enter board height:", minvalue=5, maxvalue=50)
-			max_bombs = custom_width * custom_height - 1
-			custom_bombs = simpledialog.askinteger("Custom Bombs", f"Enter number of bombs (max {max_bombs}):", minvalue=1, maxvalue=max_bombs)
-
-			if custom_width and custom_height and custom_bombs:
-				self.width = custom_width
-				self.height = custom_height
-				self.bombs = custom_bombs
-		else:
-			return
-
-		self.__new_game()
-
 	def __toggle_actual_board(self) -> None:
 		self.actual_board_toggled += 1
 		if self.actual_board_toggled % 2 == 1:
@@ -244,14 +178,11 @@ class MineSweeper:
 		pass
 
 	def __new_game(self) -> None:
-		self.__reset_counter()
+		self.cell_flagged_count = 0
+		self.cell_revealed_count = 0
 
 		self.generate_board(None, None)
 		self.total_cells_to_reveal = self.width * self.height - self.bombs
-
-	def __reset_counter(self) -> None:
-		self.cell_flagged_count = 0
-		self.cell_revealed_count = 0
 
 	def generate_board(self, actual_board, display_board) -> None:
 		if actual_board != None and display_board != None:
@@ -485,6 +416,7 @@ class MineSweeper:
 				cells.config(text = updated_text, fg = font_color, bg = cell_color, relief = relief)
 				# cells.config(text = updated_text, fg = font_color, bg = cell_color)
 
+
 	def __generate_cell_num(self):
 		for x in range(self.height):
 			for y in range(self.width):
@@ -570,7 +502,7 @@ class MineSweeper:
 
 if __name__ == "__main__":
 	root = tk.Tk()
-	MineSweeper(root, 8, 8, 12)
+	MineSweeper(root, 10, 10, 10)
 
 # TODO:
 # - Timer
